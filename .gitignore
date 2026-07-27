@@ -1,0 +1,115 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+*.pyo
+*.pyc
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+htmlcov/
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+
+# ========================
+# Node.js / React / Vite
+# ========================
+node_modules/
+dist/
+.next/
+out/
+build/
+.cache/
+.parcel-cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# ========================
+# Environment Variables
+# ========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# ========================
+# IDEs and Editors
+# ========================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ========================
+# Docker
+# ========================
+.docker/
+
+# ========================
+# Logs & Temp files
+# ========================
+logs/
+*.log
+*.tmp
+*.temp
+
+# ========================
+# Claude AI config
+# ========================
+.claude/
+
+# ========================
+# SQLite Databases
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+
+# ========================
+# UV Package Manager Binaries
+# ========================
+backend/uv.exe
+backend/uv.zip
+backend/uv_extracted/
+
+# ========================
+# Scaffold dev scripts (generated tooling)
+# ========================
+frontend/scaffold*.cjs
+frontend/fix-escape.cjs
