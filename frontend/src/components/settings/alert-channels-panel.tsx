@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Trash2, SendHorizonal, Pencil, X, Check, Loader2,
@@ -14,7 +14,7 @@ import {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const CHANNEL_META: Record<ChannelType, { label: string; icon: JSX.Element; color: string }> = {
+const CHANNEL_META: Record<ChannelType, { label: string; icon: React.ReactNode; color: string }> = {
   slack:    { label: 'Slack',    icon: <MessageSquare size={14} />, color: 'text-emerald-400' },
   discord:  { label: 'Discord',  icon: <Webhook size={14} />,       color: 'text-indigo-400'  },
   telegram: { label: 'Telegram', icon: <Bell size={14} />,          color: 'text-sky-400'     },
