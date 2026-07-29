@@ -91,10 +91,11 @@ async def startup_event():
         await seed_admin()
         
     # Start background tasks
-    asyncio.create_task(simulate_live_telemetry())
+    # asyncio.create_task(simulate_live_telemetry()) # Disabled mock data
     asyncio.create_task(fetch_cisa_kev_and_seed())
-    asyncio.create_task(detect_brute_force())
-    asyncio.create_task(run_attack_noise_engine())
+    # asyncio.create_task(detect_brute_force()) # Disabled mock data
+    # asyncio.create_task(run_attack_noise_engine()) # Disabled mock data
+    
     # Genesis pipeline services
     asyncio.create_task(run_anomaly_engine())
     asyncio.create_task(run_risk_scorer())

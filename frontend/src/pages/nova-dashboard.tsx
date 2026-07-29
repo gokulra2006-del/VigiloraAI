@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BrainCircuit, CheckCircle2, Clock, Brain, MessageSquare } from 'lucide-react';
-import { PageHeader } from '@/components/layout/page-header';
+
 import { Card } from '@/components/ui/card';
 import { getAuthHeaders } from '@/services/api/auth';
 
@@ -56,10 +56,10 @@ export function NovaDashboardPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <PageHeader 
-        title="Nova AI Workspace" 
-        description="Monitor Nova's background tasks and inspect its persistent memory vault."
-      />
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-white tracking-tight">OG AI Workspace</h1>
+        <p className="text-zinc-400 mt-1">Monitor OG's background tasks and inspect its persistent memory vault.</p>
+      </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-40">
@@ -77,7 +77,7 @@ export function NovaDashboardPage() {
             <Card className="p-0 overflow-hidden bg-zinc-900/50 border-white/5">
               {tasks.length === 0 ? (
                 <div className="p-8 text-center text-zinc-500 text-sm">
-                  No background tasks for Nova.
+                  No background tasks for OG.
                 </div>
               ) : (
                 <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
@@ -122,7 +122,7 @@ export function NovaDashboardPage() {
             <Card className="p-0 overflow-hidden bg-zinc-900/50 border-white/5">
               {memories.length === 0 ? (
                 <div className="p-8 text-center text-zinc-500 text-sm">
-                  Nova has not stored any persistent memories yet.
+                  OG has not stored any persistent memories yet.
                 </div>
               ) : (
                 <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">

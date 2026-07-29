@@ -145,6 +145,7 @@ export function ChatAssistant() {
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -169,9 +170,15 @@ export function ChatAssistant() {
     }
   }, [open, minimized]);
 
+  const isListeningRef = useRef(false);
+
   const toggleListening = () => {
     if (isListening) {
       setIsListening(false);
+      isListeningRef.current = false;
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
       return;
     }
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -181,23 +188,97 @@ export function ChatAssistant() {
     }
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
 
-    recognition.onstart = () => setIsListening(true);
+    recognition.onstart = () => {
+      setIsListening(true);
+      isListeningRef.current = true;
+    };
+    
+    let finalTranscript = '';
+    
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(prev => prev ? prev + ' ' + transcript : transcript);
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      
+      const currentText = (finalTranscript + ' ' + interimTranscript).toLowerCase();
+      
+      // Wake word detection
+      if (currentText.includes('og ') || currentText.endsWith('og') || currentText.includes('o.g.')) {
+        setOpen(true);
+        setMinimized(false);
+        const commandMatch = currentText.split(/(?:og|o\.g\.)\s*/i);
+        const command = commandMatch.length > 1 ? commandMatch[1].trim() : '';
+        
+        if (command.length > 5) {
+          // A command was spoken after the wake word!
+          setInput(command);
+          
+          // Pause listening temporarily to avoid hearing itself speak
+          recognition.stop();
+          finalTranscript = '';
+          
+          sendMessage(command, true); // true = voice triggered
+        } else {
+          setInput('OG is listening...');
+          
+          if ('speechSynthesis' in window && !window.speechSynthesis.speaking) {
+            const utterance = new SpeechSynthesisUtterance("I'm listening. What do you need?");
+            utterance.lang = 'en-US';
+            utterance.rate = 1.05;
+            
+            // Pause listening while it speaks, resume after
+            recognition.stop();
+            isListeningRef.current = false;
+            finalTranscript = '';
+            
+            utterance.onend = () => {
+              isListeningRef.current = true;
+              if (recognitionRef.current) {
+                try { recognitionRef.current.start(); } catch(e) {}
+              }
+            };
+            window.speechSynthesis.speak(utterance);
+          } else {
+            // fallback if no TTS
+            finalTranscript = '';
+          }
+        }
+      } else {
+         setInput(currentText);
+      }
     };
+    
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
-      setIsListening(false);
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        console.error("Speech recognition error", event.error);
+        setIsListening(false);
+        isListeningRef.current = false;
+      }
     };
-    recognition.onend = () => setIsListening(false);
+    
+    recognition.onend = () => {
+      if (isListeningRef.current) {
+        // Automatically restart if it was stopped but we still want to listen
+        setTimeout(() => {
+            try { recognition.start(); } catch(e) {}
+        }, 100);
+      }
+    };
+    
     recognition.start();
   };
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, wasVoiceTriggered: boolean = false) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
@@ -211,6 +292,10 @@ export function ChatAssistant() {
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
+    
+    if (wasVoiceTriggered) {
+      isListeningRef.current = false; // suspend mic temporarily
+    }
 
     try {
       const res = await fetch(`${API_BASE}/chat/message`, {
@@ -235,6 +320,31 @@ export function ChatAssistant() {
 
       setMessages(prev => [...prev, assistantMsg]);
       if (!open) setUnreadCount(prev => prev + 1);
+
+      // Text-To-Speech (Siri/ChatGPT voice mode)
+      if (wasVoiceTriggered && 'speechSynthesis' in window) {
+        const cleanText = data.reply.replace(/[*#]/g, ''); // strip markdown
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 1.05;
+        
+        utterance.onend = () => {
+          // Resume listening after OG finishes speaking
+          isListeningRef.current = true;
+          if (recognitionRef.current) {
+            try { recognitionRef.current.start(); } catch(e) {}
+          }
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else if (wasVoiceTriggered) {
+        // Resume immediately if no TTS
+        isListeningRef.current = true;
+        if (recognitionRef.current) {
+            try { recognitionRef.current.start(); } catch(e) {}
+        }
+      }
+
     } catch (err) {
       setMessages(prev => [
         ...prev,
@@ -245,6 +355,10 @@ export function ChatAssistant() {
           timestamp: new Date(),
         },
       ]);
+      if (wasVoiceTriggered) {
+        isListeningRef.current = true;
+        try { recognitionRef.current.start(); } catch(e) {}
+      }
     } finally {
       setLoading(false);
     }
@@ -286,6 +400,16 @@ export function ChatAssistant() {
               {unreadCount}
             </motion.span>
           )}
+          {isListening && unreadCount === 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+            >
+              <Mic size={10} className="text-white animate-pulse" />
+            </motion.span>
+          )}
         </AnimatePresence>
       </motion.button>
 
@@ -309,7 +433,7 @@ export function ChatAssistant() {
                 <Bot size={16} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-white">Sentinel Assistant</p>
+                <p className="text-[13px] font-semibold text-white">OG Assistant</p>
                 <div className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
                   <p className="text-[11px] text-zinc-500">Live platform data</p>

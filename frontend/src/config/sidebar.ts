@@ -25,7 +25,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
       { label: 'Dashboard',      path: '/dashboard', icon: LayoutDashboard },
       { label: 'Live Feed',      path: '/feed',       icon: Activity },
       { label: 'GIS Map',        path: '/map',        icon: MapIcon },
-      { label: 'Nova AI',        path: '/nova',       icon: Bot,         badge: 'AI' },
+      { label: 'OG AI',          path: '/nova',       icon: Bot,         badge: 'AI' },
     ]
   },
   {

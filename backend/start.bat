@@ -16,5 +16,6 @@ echo Syncing dependencies...
 .\uv.exe pip install -r requirements.txt
 
 echo Starting Uvicorn...
-.\uv.exe run uvicorn main:app --reload
+call .venv\Scripts\activate.bat
+python -m uvicorn main:app
 pause
