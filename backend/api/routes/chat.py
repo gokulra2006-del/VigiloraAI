@@ -245,21 +245,13 @@ async def chat_message(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Process a chat message and return an intelligent, data-driven response."""
+    """Process a chat message and return an intelligent response via Nova."""
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
     ctx = await _build_context(db)
-    intent = _classify_intent(req.message)
-
-    # Try Ollama first for open-ended questions
-    ollama_reply = None
-    if intent == "general":
-        ollama_reply = await _query_ollama(req.message, ctx, req.history)
-
-    if ollama_reply:
-        return ChatResponse(reply=ollama_reply, data=None)
-
-    # Fall back to the deterministic rule engine
-    reply, data = _generate_rule_reply(intent, ctx, req.message)
-    return ChatResponse(reply=reply, data=data)
+    
+    from services.nova_agent import handle_chat
+    reply = await handle_chat(req.message, req.history, ctx)
+    
+    return ChatResponse(reply=reply, data=None)

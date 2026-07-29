@@ -50,7 +50,7 @@ async def detect_brute_force():
                             SecurityEvent.timestamp >= ten_mins_ago
                         )
                     )
-                    if not existing.scalar_one_or_none():
+                    if not existing.first():
                         # Create Security Event
                         event = SecurityEvent(
                             event_type=SecurityEventTypeEnum.brute_force.value,

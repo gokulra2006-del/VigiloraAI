@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { fetchCameras } from '@/services/api/cameras';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Maximize2, Settings, AlertCircle, Smartphone, Film, Laptop, Info, ChevronDown } from 'lucide-react';
+import { Camera, Maximize2, Settings, AlertCircle, Smartphone, Film, Laptop, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, Minus, Move } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HlsPlayer } from '@/components/ui/hls-player';
+import { AiOverlay } from '@/components/ui/ai-overlay';
 
 const SourceIcon = ({ type, status }: { type: string, status: string }) => {
   const statusColor = status === 'online' ? 'text-emerald-500' : (status === 'degraded' ? 'text-yellow-500' : 'text-red-500');
@@ -83,9 +85,31 @@ const IconLegend = () => {
 
 export function LiveFeedPage() {
   const [cameras, setCameras] = useState<any[]>([]);
+  const [activePtz, setActivePtz] = useState<string | null>(null);
+
+  const handlePtz = async (cameraId: string, action: string) => {
+    console.log(`[PTZ] Camera ${cameraId} action: ${action}`);
+    // Simulate backend call
+    // await fetch(`/api/v1/cameras/${cameraId}/ptz`, { method: 'POST', body: JSON.stringify({ action }) })
+  };
 
   useEffect(() => {
-    fetchCameras().then(setCameras);
+    fetchCameras().then(async (cams) => {
+      setCameras(cams);
+      // Trigger stream start for all online cameras that are video/hls/rtsp
+      for (const cam of cams) {
+        if (cam.status === 'online' && (cam.source_type === 'rtsp' || cam.source_type === 'hls' || cam.source_type === 'video_file')) {
+          try {
+            await fetch(`http://127.0.0.1:8000/api/v1/cameras/${cam.id}/stream/start`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${localStorage.getItem('sentinel_token')}` }
+            });
+          } catch (e) {
+            console.error(`Failed to start stream for ${cam.id}`, e);
+          }
+        }
+      }
+    });
   }, []);
 
   return (
@@ -118,16 +142,32 @@ export function LiveFeedPage() {
               <div className="relative aspect-video bg-[#09090b] flex items-center justify-center overflow-hidden border-b border-white/5">
                 {cam.status === 'online' ? (
                   <>
-                    <div className="absolute inset-0 bg-zinc-900 bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
-                    {/* Live Stream Simulation / Mock Video could go here */}
-                    <div className="absolute top-2 right-2 flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-emerald-500 bg-black/50 px-1 rounded">100% Signal</span>
+                    <div className="relative w-full h-full">
+                      {(cam.source_type === 'rtsp' || cam.source_type === 'hls' || cam.source_type === 'video_file') ? (
+                        <HlsPlayer 
+                          src={`http://127.0.0.1:8000/api/v1/cameras/${cam.id}/stream/index.m3u8`} 
+                          className="absolute inset-0 w-full h-full object-cover" 
+                        />
+                      ) : cam.source_type === 'webcam' ? (
+                         <div className="absolute inset-0 bg-zinc-900 bg-cover bg-center opacity-40 mix-blend-luminosity flex items-center justify-center text-white/50 text-xs">Webcam active</div>
+                      ) : (
+                        <div className="absolute inset-0 bg-zinc-900 bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+                      )}
+                      
+                      {/* Bounding box overlay simulation */}
+                      <div className="absolute inset-0 pointer-events-none border border-transparent hover:border-red-500/50 transition-colors">
+                         <AiOverlay cameraId={cam.id} />
+                      </div>
+                    </div>
+                    
+                    <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
+                      <span className="text-[10px] font-mono text-emerald-500 bg-black/50 px-1 rounded backdrop-blur">100% Signal</span>
                       <span className="flex items-center gap-1.5">
                         <span className="flex h-1.5 w-1.5 relative">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
                         </span>
-                        <span className="text-[9px] font-bold text-white uppercase bg-black/80 px-1 rounded tracking-widest">REC</span>
+                        <span className="text-[9px] font-bold text-white uppercase bg-black/80 px-1 rounded tracking-widest backdrop-blur">REC</span>
                       </span>
                     </div>
                   </>
@@ -147,13 +187,37 @@ export function LiveFeedPage() {
                   </div>
                 )}
                 
+                {/* PTZ Controls Overlay */}
+                {activePtz === cam.id && cam.status === 'online' && (
+                  <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center backdrop-blur-sm transition-opacity">
+                    <div className="bg-zinc-900/90 border border-white/10 p-3 rounded-xl shadow-2xl flex flex-col items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-widest">PTZ Control</span>
+                      <div className="grid grid-cols-3 gap-1">
+                        <div></div>
+                        <button onClick={() => handlePtz(cam.id, 'up')} className="p-2 bg-white/10 hover:bg-white/20 rounded transition-colors"><ChevronUp size={16} className="text-white" /></button>
+                        <div></div>
+                        <button onClick={() => handlePtz(cam.id, 'left')} className="p-2 bg-white/10 hover:bg-white/20 rounded transition-colors"><ChevronLeft size={16} className="text-white" /></button>
+                        <button onClick={() => setActivePtz(null)} className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded transition-colors" title="Close PTZ"><Settings size={16} className="text-white" /></button>
+                        <button onClick={() => handlePtz(cam.id, 'right')} className="p-2 bg-white/10 hover:bg-white/20 rounded transition-colors"><ChevronRight size={16} className="text-white" /></button>
+                        <div></div>
+                        <button onClick={() => handlePtz(cam.id, 'down')} className="p-2 bg-white/10 hover:bg-white/20 rounded transition-colors"><ChevronDown size={16} className="text-white" /></button>
+                        <div></div>
+                      </div>
+                      <div className="flex gap-2 mt-2 w-full">
+                        <button onClick={() => handlePtz(cam.id, 'zoom_out')} className="flex-1 py-1.5 flex justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"><Minus size={14} className="text-white" /></button>
+                        <button onClick={() => handlePtz(cam.id, 'zoom_in')} className="flex-1 py-1.5 flex justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"><Plus size={14} className="text-white" /></button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Hover controls (only for online) */}
-                {cam.status === 'online' && (
+                {cam.status === 'online' && activePtz !== cam.id && (
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur transition-colors" title="Fullscreen"><Maximize2 size={16} /></button>
                     <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur transition-colors" title="Snapshot"><Camera size={16} /></button>
                     <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur transition-colors" title="Playback"><Film size={16} /></button>
-                    <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur transition-colors" title="Settings"><Settings size={16} /></button>
+                    <button onClick={() => setActivePtz(cam.id)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur transition-colors" title="PTZ Controls"><Move size={16} /></button>
                   </div>
                 )}
               </div>

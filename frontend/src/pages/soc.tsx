@@ -28,7 +28,7 @@ const threatIcon = L.divIcon({
   iconAnchor: [6, 6],
 });
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = 'http://127.0.0.1:8000/api/v1';
 
 const SCENARIOS = [
   { id: 'brute_force',     label: 'Brute Force',     mitre: 'T1110',        color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20 hover:bg-orange-500/20' },

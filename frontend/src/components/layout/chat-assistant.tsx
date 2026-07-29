@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   BrainCircuit, X, Send, Loader2, ChevronDown,
   AlertTriangle, Camera, ShieldAlert, RotateCcw, Bot,
-  Minimize2,
+  Minimize2, Mic, MicOff,
 } from 'lucide-react';
 import { getAuthHeaders } from '@/services/api/auth';
 
@@ -127,7 +127,7 @@ function TypingIndicator() {
 
 // ─── Main Chat Assistant ──────────────────────────────────────────────────────
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = 'http://127.0.0.1:8000/api/v1';
 
 const WELCOME_MESSAGE: Message = {
   id: 'welcome',
@@ -144,6 +144,7 @@ export function ChatAssistant() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isListening, setIsListening] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -167,6 +168,34 @@ export function ChatAssistant() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open, minimized]);
+
+  const toggleListening = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice input is not supported in your browser.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(prev => prev ? prev + ' ' + transcript : transcript);
+    };
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+    recognition.start();
+  };
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -360,6 +389,15 @@ export function ChatAssistant() {
                         className="flex-1 bg-transparent text-[13px] text-white placeholder:text-zinc-600 resize-none focus:outline-none leading-relaxed max-h-24 overflow-y-auto custom-scrollbar"
                         style={{ minHeight: '20px' }}
                       />
+                      <button
+                        onClick={toggleListening}
+                        className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                          isListening ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-white/10'
+                        }`}
+                        title="Voice Input"
+                      >
+                        {isListening ? <Mic size={13} className="animate-pulse" /> : <MicOff size={13} />}
+                      </button>
                       <button
                         onClick={() => sendMessage(input)}
                         disabled={loading || !input.trim()}

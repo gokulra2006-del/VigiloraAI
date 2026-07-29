@@ -131,6 +131,8 @@ async def _write_incident(session, inc_type: str, severity: str, desc: str, came
         camera_id=camera_id,
         status="detected",
     )
+    from services.explainability import generate_incident_justification
+    incident.justification_text = generate_incident_justification(incident)
     session.add(incident)
     await session.commit()
     await session.refresh(incident)

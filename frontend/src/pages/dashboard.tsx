@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchDashboardStats, DashboardStats } from '@/services/api/dashboard';
+import { fetchDashboardStats, DashboardStats, fetchDashboardTimeseries } from '@/services/api/dashboard';
 import { useTelemetrySocket, TelemetryEvent } from '@/hooks/use-telemetry-socket';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Activity, Camera, AlertTriangle, ShieldCheck, ChevronRight, TrendingUp } from 'lucide-react';
@@ -21,24 +21,15 @@ const itemVariants = {
 
 export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [chartData, setChartData] = useState<{time: string; threats: number}[]>(Array.from({ length: 12 }, (_, i) => ({
-    time: `${i * 2}m`,
-    threats: Math.floor(Math.random() * 50) + 10,
-  })));
+  const [chartData, setChartData] = useState<{time: string; threats: number}[]>([]);
 
   useEffect(() => {
     fetchDashboardStats().then(setStats).catch(console.error);
+    fetchDashboardTimeseries().then(setChartData).catch(console.error);
 
     const interval = setInterval(() => {
-      setChartData(prev => {
-        const newData = [...prev.slice(1)];
-        newData.push({
-          time: 'Now',
-          threats: Math.floor(Math.random() * 50) + 10,
-        });
-        return newData;
-      });
-    }, 5000);
+      fetchDashboardTimeseries().then(setChartData).catch(console.error);
+    }, 60000); // refresh every minute
 
     return () => clearInterval(interval);
   }, []);
@@ -203,6 +194,94 @@ export function DashboardPage() {
           </Card>
         </motion.div>
       </div>
+      
+      {/* Human-in-the-Loop Approvals */}
+      <div className="grid grid-cols-1 gap-4 mt-2">
+        <Card className="bg-zinc-900/40 border-white/5">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-[15px] font-semibold text-white flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              Human-in-the-Loop Approvals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PendingApprovalsWidget />
+          </CardContent>
+        </Card>
+      </div>
+
     </motion.div>
+  );
+}
+
+function PendingApprovalsWidget() {
+  const [approvals, setApprovals] = useState<any[]>([]);
+  
+  useEffect(() => {
+    // Dynamic import to avoid top-level issues if the file is broken during refactor
+    import('@/services/api/approvals').then(({ fetchPendingApprovals }) => {
+       fetchPendingApprovals().then(setApprovals).catch(console.error);
+       const interval = setInterval(() => {
+         fetchPendingApprovals().then(setApprovals).catch(console.error);
+       }, 5000);
+       return () => clearInterval(interval);
+    }).catch(console.error);
+  }, []);
+
+  const handleApprove = async (id: number) => {
+    try {
+      const { approveAction } = await import('@/services/api/approvals');
+      await approveAction(id);
+      setApprovals(prev => prev.filter((a: any) => a.id !== id));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleReject = async (id: number) => {
+    try {
+      const { rejectAction } = await import('@/services/api/approvals');
+      await rejectAction(id);
+      setApprovals(prev => prev.filter((a: any) => a.id !== id));
+    } catch (e) { console.error(e); }
+  };
+
+  if (approvals.length === 0) {
+    return <div className="text-[13px] text-muted-foreground py-4 text-center">No pending playbook actions requiring human approval.</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {approvals.map((app: any) => (
+        <div key={app.id} className={`p-4 rounded-lg border ${app.tier === 'alert_and_require_ack' ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+           <div className="flex justify-between items-start mb-2">
+             <div className="flex items-center gap-2">
+               <span className={`text-[11px] font-bold px-2 py-0.5 rounded uppercase ${app.tier === 'alert_and_require_ack' ? 'bg-red-500 text-white' : 'bg-amber-500 text-black'}`}>
+                  {app.tier === 'alert_and_require_ack' ? 'Action Required' : 'Review Suggested'}
+               </span>
+               <span className="text-sm font-semibold text-white">{app.playbook_name || 'Playbook Triggered'}</span>
+             </div>
+             <span className="text-[11px] text-muted-foreground">{new Date(app.created_at).toLocaleTimeString()}</span>
+           </div>
+           
+           <p className="text-[13px] text-white/80 mt-2 mb-4 leading-relaxed">
+             <strong>AI Reasoning:</strong> {app.justification_text || "Operator intervention requested."}
+           </p>
+
+           <div className="flex items-center gap-3">
+             <button 
+                onClick={() => handleApprove(app.id)}
+                className="bg-zinc-100 hover:bg-white text-black px-4 py-1.5 rounded-md text-[13px] font-medium transition-colors"
+             >
+                Approve & Execute
+             </button>
+             <button 
+                onClick={() => handleReject(app.id)}
+                className="bg-transparent border border-white/20 hover:bg-white/5 text-white px-4 py-1.5 rounded-md text-[13px] font-medium transition-colors"
+             >
+                Reject Action
+             </button>
+           </div>
+        </div>
+      ))}
+    </div>
   );
 }

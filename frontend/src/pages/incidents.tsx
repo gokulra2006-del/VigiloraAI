@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchIncidents, transitionIncident } from '@/services/api/incidents';
+import { assignIncident, createCaseFromIncident, fetchIncidents, transitionIncident } from '@/services/api/incidents';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, AlertTriangle, ShieldCheck, Clock, Download, ChevronDown, User, X, Camera, MapPin, Video, FileText } from 'lucide-react';
@@ -171,6 +171,12 @@ export function IncidentsPage() {
                     {incident.status === 'in_progress' && (
                       <button className="px-2 py-1 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded text-[11px] font-medium transition-colors" onClick={(e) => { e.stopPropagation(); transitionIncident(incident.id, 'resolved').then(() => fetchIncidents().then(setIncidents)); }}>Resolve</button>
                     )}
+                    {!incident.assigned_to && (
+                      <button className="px-2 py-1 bg-white/5 text-zinc-300 hover:bg-white/10 rounded text-[11px] font-medium transition-colors" onClick={(e) => { e.stopPropagation(); assignIncident(incident.id).then(() => fetchIncidents().then(setIncidents)); }}>Assign</button>
+                    )}
+                    {!incident.case_id && (
+                      <button className="px-2 py-1 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 rounded text-[11px] font-medium transition-colors" onClick={(e) => { e.stopPropagation(); createCaseFromIncident(incident.id).then(() => fetchIncidents().then(setIncidents)); }}>Create case</button>
+                    )}
                   </td>
                 </motion.tr>
               ))}
@@ -247,11 +253,18 @@ export function IncidentsPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Camera size={14} className="text-white/50" />
-                        <span>Source: <span className="text-white">{selectedIncident.camera_id || 'Unknown'}</span></span>
+                        <span>Source: <span className="text-white">{selectedIncident.source || selectedIncident.camera_id || 'Unknown'}</span></span>
+                      </div>
+                      <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                        <FileText size={14} className="text-white/50 mt-0.5 shrink-0" />
+                        <div className="flex flex-col gap-1">
+                          <span>AI Justification:</span>
+                          <span className="text-white text-[13px] leading-relaxed italic">{selectedIncident.justification_text || "AI detected deviation from baseline pattern."}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <MapPin size={14} className="text-white/50" />
-                        <span>Location: <span className="text-white">Sector 4, Zone B</span></span>
+                        <span>Location: <span className="text-white">{selectedIncident.zone || 'Unassigned zone'}</span></span>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <User size={14} className="text-white/50" />

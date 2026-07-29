@@ -21,6 +21,14 @@ const MapPage = React.lazy(() => import("@/pages/map").then(module => ({ default
 const ReportsPage = React.lazy(() => import("@/pages/reports").then(module => ({ default: module.ReportsPage })));
 const UsersPage = React.lazy(() => import("@/pages/users").then(module => ({ default: module.UsersPage })));
 const SettingsPage = React.lazy(() => import("@/pages/settings").then(module => ({ default: module.SettingsPage })));
+const ObjectAlertsPage = React.lazy(() => import("@/pages/object-alerts").then(module => ({ default: module.ObjectAlertsPage })));
+const WatchlistPage = React.lazy(() => import("@/pages/watchlist").then(module => ({ default: module.WatchlistPage })));
+const CaseBoardPage = React.lazy(() => import("@/pages/case-board").then(module => ({ default: module.CaseBoardPage })));
+const TimelinePage = React.lazy(() => import("@/pages/timeline").then(module => ({ default: module.TimelinePage })));
+const PlaybookBuilderPage = React.lazy(() => import("@/pages/playbook-builder").then(module => ({ default: module.PlaybookBuilderPage })));
+const ApprovalsPage = React.lazy(() => import("@/pages/approvals").then(module => ({ default: module.ApprovalsPage })));
+const CamerasPage = React.lazy(() => import("@/pages/cameras").then(module => ({ default: module.CamerasPage })));
+const NovaDashboardPage = React.lazy(() => import("@/pages/nova-dashboard").then(module => ({ default: module.NovaDashboardPage })));
 
 // Global loading fallback
 const PageLoader = () => (
@@ -54,6 +62,14 @@ function App() {
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/object-alerts" element={<ObjectAlertsPage />} />
+                    <Route path="/watchlist" element={<WatchlistPage />} />
+                    <Route path="/case-board" element={<CaseBoardPage />} />
+                    <Route path="/timeline" element={<TimelinePage />} />
+                    <Route path="/playbooks" element={<PlaybookBuilderPage />} />
+                    <Route path="/nova" element={<NovaDashboardPage />} />
+                    <Route path="/approvals" element={<ApprovalsPage />} />
+                    <Route path="/cameras" element={<CamerasPage />} />
                   </Route>
                 </Route>
                 

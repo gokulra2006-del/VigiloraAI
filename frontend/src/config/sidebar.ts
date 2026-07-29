@@ -1,14 +1,16 @@
 import React from 'react';
-import { 
-  BrainCircuit, LayoutDashboard, Settings, ShieldAlert, 
-  Activity, CarFront, Siren, ShieldBan, Map as MapIcon, 
-  FileText, Users 
+import {
+  LayoutDashboard, Settings, ShieldAlert,
+  Activity, CarFront, Siren, ShieldBan, Map as MapIcon,
+  FileText, Users, Crosshair, UserCheck, Briefcase, Film,
+  Zap, BrainCircuit, CheckSquare, Video, Bot,
 } from 'lucide-react';
 
 export interface SidebarItemConfig {
   label: string;
   path: string;
   icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
+  badge?: string;
 }
 
 export interface SidebarSectionConfig {
@@ -20,37 +22,50 @@ export const sidebarSections: SidebarSectionConfig[] = [
   {
     title: 'Overview',
     items: [
-      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-      { label: 'Live Feed', path: '/feed', icon: Activity },
-      { label: 'GIS Map', path: '/map', icon: MapIcon },
+      { label: 'Dashboard',      path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Live Feed',      path: '/feed',       icon: Activity },
+      { label: 'GIS Map',        path: '/map',        icon: MapIcon },
+      { label: 'Nova AI',        path: '/nova',       icon: Bot,         badge: 'AI' },
     ]
   },
   {
-    title: 'Traffic Operations',
+    title: 'Detection',
     items: [
-      { label: 'Traffic Analytics', path: '/traffic', icon: CarFront },
+      { label: 'Object Alerts',  path: '/object-alerts', icon: Crosshair,   badge: 'LIVE' },
+      { label: 'Cameras',        path: '/cameras',       icon: Video },
+      { label: 'Watchlist',      path: '/watchlist',     icon: UserCheck },
+      { label: 'AI Models',      path: '/ai-models',     icon: BrainCircuit },
     ]
   },
   {
-    title: 'AI & Analytics',
+    title: 'Operations',
     items: [
-      { label: 'AI Models', path: '/ai-models', icon: BrainCircuit },
-      { label: 'Reports', path: '/reports', icon: FileText },
+      { label: 'Case Board',     path: '/case-board',    icon: Briefcase },
+      { label: 'Timeline',       path: '/timeline',      icon: Film },
+      { label: 'Incidents',      path: '/incidents',     icon: ShieldAlert },
+      { label: 'Reports',        path: '/reports',       icon: FileText },
     ]
   },
   {
-    title: 'SOC & Security',
+    title: 'Automation',
     items: [
-      { label: 'Incidents', path: '/incidents', icon: ShieldAlert },
-      { label: 'SOC Center', path: '/soc', icon: Siren },
-      { label: 'Threat Intel', path: '/threats', icon: ShieldBan },
+      { label: 'Playbooks',      path: '/playbooks',     icon: Zap,         badge: 'NEW' },
+      { label: 'Approvals',      path: '/approvals',     icon: CheckSquare },
+      { label: 'SOC Center',     path: '/soc',           icon: Siren },
+      { label: 'Threat Intel',   path: '/threats',       icon: ShieldBan },
+    ]
+  },
+  {
+    title: 'Traffic & Analytics',
+    items: [
+      { label: 'Traffic',        path: '/traffic',       icon: CarFront },
     ]
   },
   {
     title: 'Administration',
     items: [
-      { label: 'Users', path: '/users', icon: Users },
-      { label: 'Settings', path: '/settings', icon: Settings },
+      { label: 'Users',          path: '/users',         icon: Users },
+      { label: 'Settings',       path: '/settings',      icon: Settings },
     ]
   }
 ];

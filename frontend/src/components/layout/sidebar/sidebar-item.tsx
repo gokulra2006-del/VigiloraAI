@@ -33,12 +33,19 @@ export function SidebarItem({ item, isExpanded = true, onNavigate }: SidebarItem
         
         <span 
           className={cn(
-            "text-[14px] font-medium tracking-wide whitespace-nowrap transition-all duration-300",
+            "text-[14px] font-medium tracking-wide whitespace-nowrap transition-all duration-300 flex-1",
             !isExpanded && "w-0 opacity-0 overflow-hidden"
           )}
         >
           {item.label}
         </span>
+        {isExpanded && item.badge && (
+          <span className={`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-md ${
+            item.badge === 'LIVE' ? 'bg-red-500/20 text-red-400' : 'bg-purple-500/20 text-purple-400'
+          }`}>
+            {item.badge}
+          </span>
+        )}
       </Link>
     </div>
   );

@@ -1,6 +1,6 @@
 import { getAuthHeaders } from './auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
 export interface DashboardStats {
   activeIncidents: number;
@@ -23,5 +23,13 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+  return response.json();
+};
+
+export const fetchDashboardTimeseries = async (): Promise<{time: string, threats: number}[]> => {
+  const response = await fetch(`${API_BASE_URL}/dashboard/timeseries`, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch dashboard timeseries');
   return response.json();
 };

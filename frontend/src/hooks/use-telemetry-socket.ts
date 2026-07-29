@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const WS_URL = 'ws://localhost:8000/api/v1/telemetry/ws';
+const WS_URL = 'ws://127.0.0.1:8000/api/v1/telemetry/ws';
 
 export type TelemetryEvent = {
   type: string;

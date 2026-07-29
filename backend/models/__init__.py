@@ -8,6 +8,23 @@ from .assets import (
     ThreatIntel,
     TrafficMetric,
     User,
+    Case,
+    Watchlist,
+    Zone,
+    Playbook,
+    # Genesis models
+    AnomalyBaseline,
+    WatchlistMatch,
+    PlaybookExecution,
+    RiskScore,
+    IncidentReport,
+)
+from .nova import (
+    Memory,
+    NovaTask,
+    Knowledge,
+    CommandLog,
+    NotificationConfig,
 )
 
 __all__ = [
@@ -20,4 +37,20 @@ __all__ = [
     "ThreatIntel",
     "TrafficMetric",
     "User",
+    "Case",
+    "Watchlist",
+    "Zone",
+    "Playbook",
+    # Genesis
+    "AnomalyBaseline",
+    "WatchlistMatch",
+    "PlaybookExecution",
+    "RiskScore",
+    "IncidentReport",
+    # Nova
+    "Memory",
+    "NovaTask",
+    "Knowledge",
+    "CommandLog",
+    "NotificationConfig",
 ]

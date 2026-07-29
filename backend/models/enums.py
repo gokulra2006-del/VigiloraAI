@@ -47,3 +47,29 @@ class SecurityEventTypeEnum(str, enum.Enum):
     anomalous_traffic = "anomalous_traffic"
     privilege_escalation = "privilege_escalation"
     data_exfiltration = "data_exfiltration"
+
+
+class AutonomyTierEnum(str, enum.Enum):
+    auto_resolve = "auto_resolve"
+    suggest_confirm = "suggest_confirm"
+    require_ack = "require_ack"
+
+
+class ApprovalStatusEnum(str, enum.Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+
+
+class AlertSourceEnum(str, enum.Enum):
+    camera = "camera"
+    audio = "audio"
+    thermal = "thermal"
+    iot = "iot"
+    manual = "manual"
+
+
+class CaseResolutionEnum(str, enum.Enum):
+    true_positive = "true_positive"
+    false_positive = "false_positive"
+    undetermined = "undetermined"

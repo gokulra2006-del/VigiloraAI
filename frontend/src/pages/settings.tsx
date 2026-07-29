@@ -33,7 +33,7 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
 
   // General Settings
-  const [backendUrl, setBackendUrl] = useLocalStorage('sentinel_backend_url', 'http://localhost:8000/api/v1');
+  const [backendUrl, setBackendUrl] = useLocalStorage('sentinel_backend_url', 'http://127.0.0.1:8000/api/v1');
   const [globalThreshold, setGlobalThreshold] = useLocalStorage('sentinel_global_threshold', 75);
   
   // Alerts

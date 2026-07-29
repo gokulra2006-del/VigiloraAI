@@ -33,9 +33,24 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
     # --- Bootstrap admin (created on startup if it does not exist) ---
     FIRST_ADMIN_USERNAME: str = "admin"
-    FIRST_ADMIN_PASSWORD: str = "admin123"
+    FIRST_ADMIN_PASSWORD: str = "password123"
     AUTO_CREATE_TABLES: bool = True
     SEED_ADMIN: bool = True
+    
+    # --- Nova Assistant (LLM + Notifications) ---
+    ANTHROPIC_API_KEY: str | None = None
+    PUSHOVER_USER_KEY: str | None = None
+    PUSHOVER_API_TOKEN: str | None = None
+    TWILIO_ACCOUNT_SID: str | None = None
+    TWILIO_AUTH_TOKEN: str | None = None
+    TWILIO_FROM_NUMBER: str | None = None
+    TWILIO_TO_NUMBER: str | None = None
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USER: str | None = None
+    SMTP_PASS: str | None = None
+    SMTP_TO_EMAIL: str | None = None
+
 @lru_cache
 def get_settings() -> Settings:
     """Return a cached Settings instance."""
