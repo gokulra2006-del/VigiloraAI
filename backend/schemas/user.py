@@ -5,7 +5,9 @@ from models.enums import RoleEnum
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: RoleEnum = RoleEnum.operator
+    role: RoleEnum = RoleEnum.soc_operator
+    department: str | None = None
+    badge_id: str | None = None
 
 class UserResponse(BaseModel):
     id: str
@@ -13,6 +15,8 @@ class UserResponse(BaseModel):
     role: RoleEnum
     is_active: bool
     created_at: datetime | None
+    department: str | None = None
+    badge_id: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -27,3 +31,4 @@ class TokenData(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+

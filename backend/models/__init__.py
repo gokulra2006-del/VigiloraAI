@@ -16,6 +16,7 @@ from .assets import (
     AnomalyBaseline,
     WatchlistMatch,
     PlaybookExecution,
+    PlaybookApproval,
     RiskScore,
     IncidentReport,
 )
@@ -25,6 +26,14 @@ from .nova import (
     Knowledge,
     CommandLog,
     NotificationConfig,
+)
+from .traffic import (
+    CameraHealth,
+    TrafficEvent,
+    Violation,
+    LicensePlateRecord,
+    Alert,
+    AuditLog,
 )
 
 __all__ = [
@@ -45,6 +54,7 @@ __all__ = [
     "AnomalyBaseline",
     "WatchlistMatch",
     "PlaybookExecution",
+    "PlaybookApproval",
     "RiskScore",
     "IncidentReport",
     # Nova
@@ -53,4 +63,12 @@ __all__ = [
     "Knowledge",
     "CommandLog",
     "NotificationConfig",
+    # SentinelVision Phase 1
+    "CameraHealth",
+    "TrafficEvent",
+    "Violation",
+    "LicensePlateRecord",
+    "Alert",
+    "AuditLog",
 ]
+

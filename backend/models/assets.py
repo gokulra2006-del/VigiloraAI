@@ -38,9 +38,13 @@ class User(Base):
     id = Column(String, primary_key=True, default=_uuid)
     username = Column(String(80), unique=True, nullable=False, index=True)
     hashed_password = Column(String(256), nullable=False)
-    role = Column(String(20), nullable=False, default="operator")  # RoleEnum value
+    role = Column(String(20), nullable=False, default="soc_operator")  # RoleEnum value
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # SentinelVision Phase 1 — operator metadata
+    department = Column(String(100), nullable=True)
+    badge_id = Column(String(50), nullable=True)
 
     # Relationships
     assigned_incidents = relationship("Incident", back_populates="assignee", lazy="selectin")
@@ -69,6 +73,12 @@ class Camera(Base):
     zone_id = Column(String, ForeignKey("zones.id"), nullable=True)
     active_models = Column(JSON, default=list)  # e.g. ["YOLOv8"]
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # SentinelVision Phase 1 — camera enrichment
+    last_heartbeat = Column(DateTime(timezone=True), nullable=True)
+    health_status = Column(String(30), default="unknown")  # CameraHealthStatusEnum
+    installation_date = Column(DateTime(timezone=True), nullable=True)
+    area = Column(String(200), nullable=True)  # e.g. "Doha, Al Corniche"
 
     # Relationships
     detections = relationship("Detection", back_populates="camera", lazy="selectin")
@@ -125,6 +135,10 @@ class Incident(Base):
     source = Column(String(20), nullable=True, default="camera")  # camera | audio | thermal | iot | manual
     model_confidence = Column(Float, nullable=True)  # 0.0 – 1.0
 
+    # SentinelVision Phase 1 — evidence and audit trail
+    evidence_refs = Column(JSON, default=list)    # ["path/to/snap1.jpg", "path/to/video.mp4"]
+    audit_history = Column(JSON, default=list)    # [{"action": "...", "by": "...", "at": "..."}]
+
     # Optional Link to Case (Layer 1: Data)
     case_id = Column(String, ForeignKey("cases.id"), nullable=True)
 
@@ -151,6 +165,14 @@ class SecurityEvent(Base):
     severity = Column(String(20), nullable=False, default="medium")
     is_resolved = Column(Boolean, default=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+    # SentinelVision Phase 1 — camera/security attribution
+    camera_id = Column(String, ForeignKey("cameras.id"), nullable=True, index=True)
+    reviewed_by = Column(String, ForeignKey("users.id"), nullable=True)
+    response_action = Column(String(200), nullable=True)
+
+    camera = relationship("Camera", lazy="selectin")
+    reviewer = relationship("User", lazy="selectin")
 
 
 # ---------------------------------------------------------------------------
@@ -281,6 +303,16 @@ class Watchlist(Base):
     notes = Column(Text, nullable=True)
     added_at = Column(DateTime(timezone=True), server_default=func.now())
     last_match = Column(DateTime(timezone=True), nullable=True)
+
+    # SentinelVision Phase 1 — vehicle watchlist + approval audit
+    plate_number = Column(String(20), nullable=True, index=True)
+    vehicle_description = Column(String(200), nullable=True)
+    added_by = Column(String, ForeignKey("users.id"), nullable=True)
+    approved_by = Column(String, ForeignKey("users.id"), nullable=True)
+    approval_status = Column(String(20), nullable=True, default="pending")  # pending | approved | rejected
+
+    adder = relationship("User", foreign_keys=[added_by], lazy="selectin")
+    approver = relationship("User", foreign_keys=[approved_by], lazy="selectin")
 
 
 # ---------------------------------------------------------------------------
@@ -413,9 +445,15 @@ class IncidentReport(Base):
     __tablename__ = "incident_reports"
 
     id = Column(String, primary_key=True, default=_uuid, index=True)
-    case_id = Column(String, ForeignKey("cases.id"), nullable=False, index=True)
+    case_id = Column(String, ForeignKey("cases.id"), nullable=True, index=True)
     pdf_path = Column(String(300), nullable=True)          # path on disk
     summary_text = Column(Text, nullable=True)             # AI-generated summary
     generated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # SentinelVision Phase 1 — report scheduling & typing
+    report_type = Column(String(30), nullable=True)        # ReportTypeEnum
+    period_start = Column(DateTime(timezone=True), nullable=True)
+    period_end = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(20), nullable=True, default="draft")  # draft | published | archived
 
     case = relationship("Case", lazy="selectin")

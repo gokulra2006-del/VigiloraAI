@@ -63,3 +63,23 @@ def require_role(allowed_roles: list[str]):
             )
         return current_user
     return role_checker
+
+
+# ---------------------------------------------------------------------------
+# Convenience RBAC helpers for SentinelVision roles
+# ---------------------------------------------------------------------------
+
+def require_soc_or_admin():
+    """SOC Operator + Admin access."""
+    return require_role(["soc_operator", "operator", "admin"])
+
+
+def require_admin_only():
+    """Admin-only access."""
+    return require_role(["admin"])
+
+
+def require_auditor_or_admin():
+    """Auditor + Admin access (read-only audit data)."""
+    return require_role(["auditor", "admin"])
+

@@ -109,6 +109,14 @@ backend/uv.zip
 backend/uv_extracted/
 
 # ========================
+# Large Binary Files (exceed GitHub 100MB limit)
+# ========================
+backend/ffmpeg.exe
+backend/ffmpeg
+backend/*.mp4
+backend/sample_video.mp4
+
+# ========================
 # Scaffold dev scripts (generated tooling)
 # ========================
 frontend/scaffold*.cjs

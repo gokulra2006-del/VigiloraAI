@@ -37,5 +37,7 @@ class IncidentResponse(BaseModel):
     zone: str | None = None
     source: str | None = None
     model_confidence: float | None = None
+    evidence_refs: list | None = None
+    audit_history: list | None = None
 
     model_config = {"from_attributes": True}
