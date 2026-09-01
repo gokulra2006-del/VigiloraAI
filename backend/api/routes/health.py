@@ -4,4 +4,4 @@ router = APIRouter()
 
 @router.get("/")
 async def health_check():
-    return {"message": "SentinelVision API is running"}
+    return {"message": "VIGILORA AI API is running"}

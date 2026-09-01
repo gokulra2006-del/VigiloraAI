@@ -10,7 +10,7 @@ echo Starting Frontend Dashboard...
 start "Sentinel-ai Frontend" cmd /k "cd frontend && npm run dev"
 
 echo Starting AI Detection Pipeline (Webcam)...
-start "Sentinel-ai AI Detection" cmd /k "cd detection && python pipeline.py --source 0 --camera-id cam-1"
+start "Sentinel-ai AI Detection" cmd /k "cd detection && ..\backend\.venv\Scripts\python pipeline.py --source 0 --camera-id cam-1"
 
 echo.
 echo Servers are launching in separate windows!

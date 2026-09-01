@@ -36,7 +36,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
                 <BrainCircuit size={22} className="text-white" />
               </div>
               <span className="text-[17px] font-semibold text-white tracking-tight">
-                SentinelVision
+                VIGILORA AI
               </span>
             </>
           ) : (
@@ -82,9 +82,9 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 
   return (
     <>
-      {/* Desktop Sidebar (Permanent) */}
+      {/* Desktop Sidebar (Permanent Static) */}
       <aside
-        className="hidden md:flex flex-col h-screen shrink-0 z-40 sticky top-0 bg-[#0B0B0F] border-r border-[rgba(255,255,255,0.08)] rounded-r-[16px] relative transition-all duration-300"
+        className="hidden md:flex flex-col h-screen max-h-screen shrink-0 z-40 sticky top-0 bg-[#0B0B0F] border-r border-[rgba(255,255,255,0.08)] rounded-r-[16px] relative transition-all duration-300 select-none overflow-hidden"
         style={{ width: isExpanded ? '270px' : '72px' }}
       >
         <SidebarContent />

@@ -5,6 +5,7 @@ from config.settings import settings
 from api.routes import health, cameras, incidents, threats, traffic, dashboard, telemetry
 from api.routes import auth, detections, security_events, alerting, chat, simulate
 from api.routes import object_alerts, watchlist, anomaly, geofence, risk_scores, cases, playbooks, nova
+from api.routes import multimodal, vision, soar, commands
 # SentinelVision Phase 1 route imports
 from api.routes import camera_health, traffic_events, violations, license_plates, alerts_routes, audit_logs
 from services.telemetry import simulate_live_telemetry
@@ -96,6 +97,13 @@ def _apply_phase1_schema_migration(connection):
             "period_end": "DATETIME",
             "status": "VARCHAR(20)",
         },
+        "playbooks": {
+            "description": "TEXT",
+            "category": "VARCHAR(50)",
+            "conditions_json": "TEXT",
+            "execution_mode": "VARCHAR(30)",
+            "version": "INTEGER",
+        },
     }
     inspector = inspect(connection)
     for table, columns in required.items():
@@ -122,12 +130,12 @@ async def seed_admin():
 async def seed_cameras():
     """Seed dummy cameras on first run so the live feed page has data."""
     dummy_cameras = [
-        {"id": "cam-1", "name": "Main Gate Cam",     "location": "Sector 4, Entry Point",  "source_type": "real_hardware", "status": "online"},
-        {"id": "cam-2", "name": "Perimeter Drone",   "location": "Sector 9, East Wall",    "source_type": "rtsp_phone",    "status": "online"},
-        {"id": "cam-3", "name": "Warehouse Demo",    "location": "Sector 2, Loading Bay",  "source_type": "video_file",    "status": "offline"},
-        {"id": "cam-4", "name": "Lobby Webcam",      "location": "Sector 1, Reception",    "source_type": "webcam",        "status": "online"},
-        {"id": "cam-5", "name": "Rooftop Cam",       "location": "Sector 6, Rooftop",      "source_type": "real_hardware", "status": "online"},
-        {"id": "cam-6", "name": "Parking Lot Cam",   "location": "Sector 3, North Lot",    "source_type": "real_hardware", "status": "degraded"},
+        {"id": "cam-1", "name": "Main Gate Cam",     "location": "Sector 4, Entry Point",  "source_type": "real_hardware", "status": "online", "lat": 40.7128, "lng": -74.0060},
+        {"id": "cam-2", "name": "Perimeter Drone",   "location": "Sector 9, East Wall",    "source_type": "rtsp_phone",    "status": "online", "lat": 40.7200, "lng": -74.0100},
+        {"id": "cam-3", "name": "Warehouse Demo",    "location": "Sector 2, Loading Bay",  "source_type": "video_file",    "status": "offline", "lat": 40.7150, "lng": -73.9900},
+        {"id": "cam-4", "name": "Lobby Webcam",      "location": "Sector 1, Reception",    "source_type": "webcam",        "status": "online", "lat": 40.7100, "lng": -73.9950},
+        {"id": "cam-5", "name": "Rooftop Cam",       "location": "Sector 6, Rooftop",      "source_type": "real_hardware", "status": "online", "lat": 40.7180, "lng": -73.9850},
+        {"id": "cam-6", "name": "Parking Lot Cam",   "location": "Sector 3, North Lot",    "source_type": "real_hardware", "status": "degraded", "lat": 40.7250, "lng": -74.0000},
     ]
     async with AsyncSessionLocal() as session:
         for cam_data in dummy_cameras:
@@ -139,6 +147,8 @@ async def seed_cameras():
                     location=cam_data["location"],
                     source_type=cam_data["source_type"],
                     status=cam_data["status"],
+                    location_lat=cam_data["lat"],
+                    location_lng=cam_data["lng"],
                     fps=30,
                     resolution="1080p",
                     active_models=["YOLOv8"],
@@ -159,17 +169,18 @@ async def startup_event():
         await seed_cameras()
         
     # Start background tasks
-    # asyncio.create_task(simulate_live_telemetry()) # Disabled mock data
+    asyncio.create_task(simulate_live_telemetry()) # Enabled for real-time map
+    asyncio.create_task(fetch_cisa_kev_and_seed())
     asyncio.create_task(fetch_cisa_kev_and_seed())
     # asyncio.create_task(detect_brute_force()) # Disabled mock data
     # asyncio.create_task(run_attack_noise_engine()) # Disabled mock data
     
-    # Genesis pipeline services
-    asyncio.create_task(run_anomaly_engine())
-    asyncio.create_task(run_risk_scorer())
-    asyncio.create_task(run_case_bundler())
-    asyncio.create_task(run_playbook_engine())
-    asyncio.create_task(run_daily_digest())
+    # Genesis pipeline services (Disabled to prevent Anthropic timeout crashes on demo)
+    # asyncio.create_task(run_anomaly_engine())
+    # asyncio.create_task(run_risk_scorer())
+    # asyncio.create_task(run_case_bundler())
+    # asyncio.create_task(run_playbook_engine())
+    # asyncio.create_task(run_daily_digest())
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
@@ -202,4 +213,9 @@ app.include_router(violations.router, prefix="/api/v1/violations", tags=["Violat
 app.include_router(license_plates.router, prefix="/api/v1/license-plates", tags=["License Plates"])
 app.include_router(alerts_routes.router, prefix="/api/v1/alerts", tags=["Alerts"])
 app.include_router(audit_logs.router, prefix="/api/v1/audit-logs", tags=["Audit Logs"])
+app.include_router(multimodal.router, prefix="/api/v1/multimodal", tags=["Multimodal Detection"])
+app.include_router(vision.router, prefix="/api/v1/vision", tags=["Vision AI"])
+app.include_router(soar.router, prefix="/api/v1/soar", tags=["SOAR Engine"])
+app.include_router(commands.router, prefix="/api/v1/commands", tags=["Command Center"])
+
 

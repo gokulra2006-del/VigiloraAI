@@ -20,7 +20,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func, desc
 
 from config.database import get_db
-from models.assets import Incident, Camera, SecurityEvent, ThreatIntel, TrafficMetric
+from models.assets import Incident, Camera, SecurityEvent, ThreatIntel, TrafficMetric, VisionIncident, Playbook, PlaybookExecution
 from security.auth import get_current_user
 
 router = APIRouter()
@@ -78,6 +78,18 @@ async def _build_context(db: AsyncSession) -> dict:
     )
     threats = threat_result.scalars().all()
 
+    # Vision AI Incidents
+    vision_result = await db.execute(
+        select(VisionIncident).order_by(desc(VisionIncident.created_at)).limit(3)
+    )
+    vision_incidents = vision_result.scalars().all()
+
+    # SOAR Executions
+    soar_result = await db.execute(
+        select(PlaybookExecution).order_by(desc(PlaybookExecution.executed_at)).limit(3)
+    )
+    soar_executions = soar_result.scalars().all()
+
     return {
         "total_incidents": len(incidents),
         "open_incidents": len(open_incidents),
@@ -91,6 +103,33 @@ async def _build_context(db: AsyncSession) -> dict:
         "unresolved_security_events": len(unresolved_events),
         "active_threats": len(threats),
         "top_threats": [{"id": t.id, "title": t.title, "cvss": t.cvss} for t in threats],
+        "vision_incidents": [
+            {
+                "id": vi.id,
+                "title": vi.incident_title,
+                "threat_level": vi.threat_level,
+                "threat_score": vi.threat_score,
+                "confidence": vi.confidence,
+                "sector": vi.sector,
+                "camera_name": vi.camera_name,
+                "summary": vi.summary,
+                "recommended_actions": vi.recommended_actions_json or [],
+            }
+            for vi in vision_incidents
+        ],
+        "soar_executions": [
+            {
+                "id": se.id,
+                "playbook_id": se.playbook_id,
+                "playbook_name": se.playbook.name if se.playbook else "Security Response Playbook",
+                "trigger_event": se.trigger_event,
+                "trigger_ref_id": se.trigger_ref_id,
+                "actions_taken": se.actions_taken or [],
+                "justification": se.justification_text,
+                "executed_at": se.executed_at.strftime("%H:%M:%S") if se.executed_at else "Recently",
+            }
+            for se in soar_executions
+        ],
         "latest_incidents": [
             {
                 "id": i.id,
@@ -109,6 +148,10 @@ async def _build_context(db: AsyncSession) -> dict:
 
 def _classify_intent(msg: str) -> str:
     msg = msg.lower()
+    if any(w in msg for w in ["soar", "playbook", "ransomware", "containment", "what happened to the", "automated response", "isolated"]):
+        return "soar"
+    if any(w in msg for w in ["vision", "visual", "cctv frame", "detected in sector", "what did vision", "what should the operator"]):
+        return "vision"
     if any(w in msg for w in ["incident", "alert", "event", "intrusion", "parking"]):
         return "incidents"
     if any(w in msg for w in ["camera", "feed", "stream", "offline", "online"]):
@@ -128,6 +171,37 @@ def _classify_intent(msg: str) -> str:
 
 def _generate_rule_reply(intent: str, ctx: dict, msg: str) -> tuple[str, dict | None]:
     """Generate a data-driven reply without an LLM."""
+
+    if intent == "soar":
+        soar_list = ctx.get("soar_executions", [])
+        if not soar_list:
+            return "No automated SOAR playbook executions recorded yet. Run a live threat simulation in **SOAR Engine** (`/soar`) to trigger defensive containment.", None
+        latest = soar_list[0]
+        acts = "\n".join([f"  • {a.get('label') or a.get('action')}" for a in latest["actions_taken"]]) or "  • Simulated endpoint isolation and session revocation."
+        reply = (
+            f"**Autonomous SOAR Playbook Execution:** `{latest['playbook_name']}`\n\n"
+            f"- **Trigger Event**: `{latest['trigger_event']}` (Ref: `{latest['trigger_ref_id']}`)\n"
+            f"- **Executed Actions ({len(latest['actions_taken'])} steps):**\n{acts}\n\n"
+            f"- **Security State**: Threat contained, affected hosts isolated, credentials revoked, and SOC audit log archived.\n\n"
+            f"Open **SOAR Engine** (`/soar`) to view execution timelines, terminal logs, and manage approval queues."
+        )
+        return reply, {"type": "soar", "execution": latest}
+
+    if intent == "vision":
+        vision_list = ctx.get("vision_incidents", [])
+        if not vision_list:
+            return "No Vision AI frame analyses recorded yet. Upload a CCTV frame in **Vision AI** to perform multimodal threat detection.", None
+        latest = vision_list[0]
+        actions_str = "\n".join([f"  {idx+1}. {act}" for idx, act in enumerate(latest["recommended_actions"])]) or "  1. Verify live camera stream."
+        reply = (
+            f"**Vision AI Threat Analysis Dossier: `{latest['id']}`**\n\n"
+            f"- **Threat Level**: `{latest['threat_level']}` ({latest['threat_score']:.1f}% Risk Score | {latest['confidence']*100:.0f}% Confidence)\n"
+            f"- **Location**: {latest['sector']} ({latest['camera_name']})\n"
+            f"- **Executive Summary**: {latest['summary']}\n\n"
+            f"**Recommended Operator Actions:**\n{actions_str}\n\n"
+            f"Navigate to **Vision AI** (`/vision-ai`) for full forensic timelines and visual bounding annotations."
+        )
+        return reply, {"type": "vision", "vision_incident": latest}
 
     if intent == "summary":
         status = "NORMAL"
@@ -181,7 +255,7 @@ Here's your platform snapshot right now:
 
     if intent == "help":
         reply = (
-            "I'm your **Sentinel-AI Assistant**. You can ask me:\n\n"
+            "I'm your **VIGILORA AI Assistant**. You can ask me:\n\n"
             "- *What's the current system status?*\n"
             "- *How many open incidents are there?*\n"
             "- *Are any cameras offline?*\n"
@@ -207,7 +281,7 @@ async def _query_ollama(message: str, ctx: dict, history: list[ChatMessage]) -> 
     """Try to get a response from local Ollama. Returns None if unavailable."""
     try:
         import aiohttp
-        system_prompt = f"""You are Sentinel-AI Assistant, an expert security operations AI embedded in the Sentinel-AI surveillance platform.
+        system_prompt = f"""You are VIGILORA AI Assistant, an expert security operations AI embedded in the VIGILORA AI surveillance platform.
 Current platform state:
 - Open incidents: {ctx['open_incidents']} ({ctx['critical_incidents']} critical)
 - Cameras online: {ctx['online_cameras']}/{ctx['total_cameras']}

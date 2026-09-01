@@ -16,3 +16,6 @@ aiohttp==3.9.5
 anthropic
 chromadb
 apscheduler
+
+opencv-python-headless
+ultralytics

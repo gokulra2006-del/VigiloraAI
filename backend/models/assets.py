@@ -299,6 +299,7 @@ class Watchlist(Base):
     name = Column(String(100), nullable=False)
     category = Column(String(20), nullable=False)  # 'POI' | 'Suspect' | 'Missing' | 'VIP'
     status = Column(String(20), default="active")  # 'active' | 'inactive'
+    priority = Column(String(20), default="MEDIUM") # 'LOW' | 'MEDIUM' | 'HIGH'
     photo_url = Column(String(300), nullable=True)
     notes = Column(Text, nullable=True)
     added_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -340,8 +341,13 @@ class Playbook(Base):
 
     id = Column(String, primary_key=True, default=_uuid, index=True)
     name = Column(String(100), nullable=False)
-    trigger_type = Column(String(50), nullable=False)  # 'critical_alert' | 'case_opened' | 'manual'
-    actions_json = Column(JSON, nullable=False)  # List of actions, e.g. [{"action": "notify_slack", "channel": "alerts"}]
+    description = Column(Text, nullable=True)
+    category = Column(String(50), default="general")  # ransomware | brute_force | vision_ai | data_exfiltration | malware | general
+    trigger_type = Column(String(50), nullable=False)  # 'threat_detected' | 'critical_alert' | 'case_opened' | 'weapon_detected' | 'manual'
+    conditions_json = Column(JSON, nullable=True)  # List of condition objects or dict
+    actions_json = Column(JSON, nullable=False)  # List of actions
+    execution_mode = Column(String(30), default="automatic")  # 'automatic' | 'human_approval'
+    version = Column(Integer, default=1)
     status = Column(String(20), default="active")  # 'active' | 'inactive'
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_triggered = Column(DateTime(timezone=True), nullable=True)
@@ -377,10 +383,15 @@ class WatchlistMatch(Base):
     camera_id = Column(String, ForeignKey("cameras.id"), nullable=True)
     confidence = Column(Float, nullable=False)          # 0.0 – 1.0
     frame_path = Column(String(300), nullable=True)     # snapshot path
+    status = Column(String(30), default="PENDING_REVIEW") # PENDING_REVIEW, VERIFIED, REJECTED, NO_MATCH, DEMO
+    reviewed_by = Column(String, ForeignKey("users.id"), nullable=True)
+    review_notes = Column(Text, nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
     watchlist_entry = relationship("Watchlist", lazy="selectin")
     camera = relationship("Camera", lazy="selectin")
+    reviewer = relationship("User", foreign_keys=[reviewed_by], lazy="selectin")
 
 
 # ---------------------------------------------------------------------------
@@ -457,3 +468,89 @@ class IncidentReport(Base):
     status = Column(String(20), nullable=True, default="draft")  # draft | published | archived
 
     case = relationship("Case", lazy="selectin")
+
+
+# ---------------------------------------------------------------------------
+# VisionIncident (Vision AI — Multimodal Threat Analysis)
+# ---------------------------------------------------------------------------
+
+class VisionIncident(Base):
+    __tablename__ = "vision_incidents"
+
+    id = Column(String(64), primary_key=True, default=_uuid, index=True) # e.g. VIS-2026-A89F1
+    camera_name = Column(String(100), default="Camera 04 (Main Security)")
+    sector = Column(String(100), default="Sector 7 (Perimeter)")
+    threat_level = Column(String(20), nullable=False, default="HIGH") # NORMAL | LOW | MEDIUM | HIGH | CRITICAL
+    threat_score = Column(Float, default=85.0) # 0.0 to 100.0
+    confidence = Column(Float, default=0.90) # 0.0 to 1.0
+    summary = Column(Text, nullable=False)
+    incident_title = Column(String(200), default="Suspicious Visual Activity")
+    incident_description = Column(Text, nullable=True)
+    detected_objects_json = Column(JSON, nullable=True) # list of objects with label, confidence, bbox
+    threats_json = Column(JSON, nullable=True) # list of threat classifications
+    visual_observations_json = Column(JSON, nullable=True) # list of observations
+    recommended_actions_json = Column(JSON, nullable=True) # list of response recommendations
+    image_url = Column(String(500), nullable=True)
+    image_metadata_json = Column(JSON, nullable=True)
+    is_demo_mode = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---------------------------------------------------------------------------
+# SOARAuditLog (SOAR Engine Audit & Telemetry Vault)
+# ---------------------------------------------------------------------------
+
+class SOARAuditLog(Base):
+    __tablename__ = "soar_audit_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    execution_id = Column(String(64), nullable=True, index=True)
+    playbook_id = Column(String, ForeignKey("playbooks.id"), nullable=True)
+    user = Column(String(100), default="SOAR Engine (Autonomous)")
+    trigger_event = Column(String(100), nullable=False)
+    action = Column(String(100), nullable=False)
+    status = Column(String(30), default="SIMULATED")  # 'SIMULATED' | 'SUCCESS' | 'FAILED' | 'PENDING'
+    details_json = Column(JSON, nullable=True)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+    playbook = relationship("Playbook", lazy="selectin")
+
+
+
+# ---------------------------------------------------------------------------
+# ThreatPrediction (Predictive Threat Intelligence Map)
+# ---------------------------------------------------------------------------
+
+class ThreatPrediction(Base):
+    __tablename__ = 'threat_predictions'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    region = Column(String(100), nullable=False, index=True)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    current_risk = Column(Integer, default=0)
+    predicted_risk = Column(Integer, default=0)
+    confidence = Column(Integer, default=0)
+    trend = Column(String(20), default='STABLE')
+    threat_types = Column(JSON, nullable=True)
+    prediction_window = Column(String(50), default='NEXT 24 HOURS')
+    contributing_features = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# ---------------------------------------------------------------------------
+# VoiceCommandAudit
+# ---------------------------------------------------------------------------
+
+class VoiceCommandAudit(Base):
+    __tablename__ = 'voice_command_audits'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user = Column(String(100), default='Operator')
+    transcript = Column(Text, nullable=False)
+    intent = Column(String(100), nullable=False)
+    target = Column(String(100), nullable=True)
+    authorization_result = Column(String(50), default='APPROVED')
+    confirmation_result = Column(String(50), default='CONFIRMED')
+    execution_result = Column(String(50), default='SUCCESS')
+    mode = Column(String(50), default='SIMULATION')
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())

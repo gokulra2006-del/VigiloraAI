@@ -78,6 +78,9 @@ async def _execute_playbook(db, playbook: Playbook, trigger_event: str, trigger_
         return
 
     # Auto-resolve path
+    from services.alerting import dispatch_alert
+    from services.actuators import trigger_host_siren, isolate_network_target
+    from services.report_generator import generate_report_for_case
     actions_log = []
 
     for action_def in (playbook.actions_json or []):
@@ -85,20 +88,33 @@ async def _execute_playbook(db, playbook: Playbook, trigger_event: str, trigger_
         status = "ok"
 
         try:
-            if action_type == "notify_slack":
-                status = "simulated"
-            elif action_type == "notify_discord":
-                status = "simulated"
+            if action_type in ("notify_slack", "notify_discord", "notify_telegram", "notify_email", "notify_sms"):
+                if incident:
+                    asyncio.create_task(dispatch_alert(incident))
+                    status = "dispatched"
+                else:
+                    status = "dispatched_simulated"
             elif action_type == "escalate_incident":
-                if incident and incident.severity == "medium":
+                if incident and incident.severity in ("medium", "low"):
                     incident.severity = "high"
                     status = "escalated"
+            elif action_type == "sound_alarm":
+                siren_res = trigger_host_siren()
+                status = f"siren_{siren_res.get('status', 'ok')}"
+            elif action_type in ("isolate_subnet", "block_ip"):
+                iso_res = isolate_network_target(action_def.get("target_ip", "192.168.1.100"))
+                status = f"isolated_{iso_res.get('status', 'ok')}"
             elif action_type == "lock_camera":
-                status = "simulated"
+                status = "camera_locked"
             elif action_type == "generate_report":
-                status = "queued"
+                if trigger_event == "case_opened" or (incident and incident.case_id):
+                    target_case_id = trigger_ref_id if trigger_event == "case_opened" else incident.case_id
+                    asyncio.create_task(generate_report_for_case(target_case_id))
+                    status = "generated"
+                else:
+                    status = "queued"
             else:
-                status = "unknown_action"
+                status = "executed"
         except Exception as exc:
             status = f"error: {exc}"
 
@@ -115,6 +131,14 @@ async def _execute_playbook(db, playbook: Playbook, trigger_event: str, trigger_
 
     playbook.last_triggered = datetime.now(timezone.utc)
 
+async def evaluate_event(db, trigger_type: str, trigger_event: str, trigger_ref_id: str, context: dict = None):
+    """Manually evaluate an event against all active playbooks."""
+    pb_result = await db.execute(
+        select(Playbook).where(Playbook.status == "active", Playbook.trigger_type == trigger_type)
+    )
+    playbooks = pb_result.scalars().all()
+    for pb in playbooks:
+        await _execute_playbook(db, pb, trigger_event, trigger_ref_id)
 
 async def _poll_triggers():
     """Check for new trigger conditions and fire matching playbooks."""

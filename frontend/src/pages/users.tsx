@@ -7,11 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function UsersPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const users = [
-    { name: 'Gokul', email: 'gokul@sentinel.ai', role: 'Super Admin', status: 'Active' },
-    { name: 'Alex M.', email: 'alex@sentinel.ai', role: 'SOC Analyst', status: 'Active' },
-    { name: 'Sarah K.', email: 'sarah@sentinel.ai', role: 'SOC Analyst', status: 'Offline' },
-    { name: 'David R.', email: 'david@sentinel.ai', role: 'Viewer', status: 'Suspended' },
-    { name: 'Elena G.', email: 'elena@sentinel.ai', role: 'Field Agent', status: 'Active' },
+    { name: 'Gokul', email: 'gokul@vigilora.ai', role: 'Super Admin', status: 'Active' },
+    { name: 'Alex M.', email: 'alex@vigilora.ai', role: 'SOC Analyst', status: 'Active' },
+    { name: 'Sarah K.', email: 'sarah@vigilora.ai', role: 'SOC Analyst', status: 'Offline' },
+    { name: 'David R.', email: 'david@vigilora.ai', role: 'Viewer', status: 'Suspended' },
+    { name: 'Elena G.', email: 'elena@vigilora.ai', role: 'Field Agent', status: 'Active' },
   ];
 
   const roles = [
@@ -125,7 +125,7 @@ export function UsersPage() {
                 <X size={16} />
               </button>
               <h2 className="text-lg font-semibold text-white mb-1">Add New User</h2>
-              <p className="text-xs text-muted-foreground mb-6">Invite a new member to the Sentinel platform.</p>
+              <p className="text-xs text-muted-foreground mb-6">Invite a new member to the VIGILORA AI platform.</p>
               
               <div className="space-y-4">
                 <div>

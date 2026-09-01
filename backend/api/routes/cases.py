@@ -1,4 +1,5 @@
 """Cases API — Genesis Layer 3 + SentinelVision Phase 1."""
+import os
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -289,5 +290,47 @@ async def get_or_generate_report(
     from services.report_generator import generate_report_for_case
     try:
         return await generate_report_for_case(case_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{case_id}/report/pdf")
+async def download_case_pdf_report(
+    case_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Download native binary PDF incident dossier for a case."""
+    from fastapi.responses import FileResponse
+    from services.report_generator import generate_report_for_case
+    try:
+        report_meta = await generate_report_for_case(case_id)
+        pdf_path = report_meta["pdf_path"]
+        if not os.path.exists(pdf_path):
+            raise HTTPException(status_code=500, detail="PDF generation failed")
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename=f"VIGILORA_Case_{case_id[:8].upper()}_Report.pdf"
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{case_id}/report/html")
+async def download_case_html_report(
+    case_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Download styled HTML incident report for a case."""
+    from fastapi.responses import FileResponse
+    from services.report_generator import generate_report_for_case
+    try:
+        report_meta = await generate_report_for_case(case_id)
+        html_path = report_meta.get("html_path") or report_meta.get("pdf_path")
+        return FileResponse(
+            html_path,
+            media_type="text/html",
+            filename=f"VIGILORA_Case_{case_id[:8].upper()}_Report.html"
+        )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

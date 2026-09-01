@@ -75,7 +75,8 @@ async def seed():
         print("Seeding incidents...")
         cam_id = "cam-1"
         result = await session.execute(select(Incident))
-        if not result.scalars().first():
+        incidents = result.scalars().all()
+        if not incidents:
             inc1 = Incident(
                 camera_id=cam_id,
                 type="Perimeter Breach",
@@ -93,6 +94,29 @@ async def seed():
                 acknowledged_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=55),
                 in_progress_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=50),
             )
+            session.add(inc1)
+            session.add(inc2)
+            await session.commit()
+            
+            # 6. Seed a Correlated Case
+            print("Seeding a correlated case...")
+            from models.assets import Case
+            demo_case = Case(
+                title="Correlated Perimeter Intrusion",
+                status="open",
+                severity="critical",
+                summary="A loitering event followed by a perimeter breach was detected in Sector 4.",
+                notes="AI identified multiple related events within a 120s correlation window.",
+                bundle_confidence=92.5,
+                correlated_alert_count=2,
+                affected_zones="Sector 4"
+            )
+            session.add(demo_case)
+            await session.commit()
+            
+            # Link incidents to case
+            inc1.case_id = demo_case.id
+            inc2.case_id = demo_case.id
             session.add(inc1)
             session.add(inc2)
 

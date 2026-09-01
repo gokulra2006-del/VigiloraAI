@@ -133,7 +133,7 @@ const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Hi! I'm your **Sentinel-AI Assistant**. I have live access to your platform data — incidents, cameras, threats, and more.\n\nHow can I help you today?",
+    "Hi! I'm your **VIGILORA AI Assistant**. I have live access to your platform data — incidents, cameras, threats, and more.\n\nHow can I help you today?",
   timestamp: new Date(),
 };
 

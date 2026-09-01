@@ -8,27 +8,32 @@ import { ErrorBoundary } from "@/components/layout/error-boundary";
 import { BrainCircuit } from "lucide-react";
 
 // Lazy-loaded pages for performance
-const LoginPage = React.lazy(() => import("@/pages/auth/login").then(module => ({ default: module.LoginPage })));
-const NotFoundPage = React.lazy(() => import("@/pages/not-found").then(module => ({ default: module.NotFoundPage })));
-const AIModelsPage = React.lazy(() => import("@/pages/ai-models").then(module => ({ default: module.AIModelsPage })));
-const DashboardPage = React.lazy(() => import("@/pages/dashboard").then(module => ({ default: module.DashboardPage })));
-const LiveFeedPage = React.lazy(() => import("@/pages/live-feed").then(module => ({ default: module.LiveFeedPage })));
-const TrafficAnalyticsPage = React.lazy(() => import("@/pages/traffic").then(module => ({ default: module.TrafficAnalyticsPage })));
-const IncidentsPage = React.lazy(() => import("@/pages/incidents").then(module => ({ default: module.IncidentsPage })));
-const SocCenterPage = React.lazy(() => import("@/pages/soc").then(module => ({ default: module.SocCenterPage })));
-const ThreatIntelPage = React.lazy(() => import("@/pages/threats").then(module => ({ default: module.ThreatIntelPage })));
-const MapPage = React.lazy(() => import("@/pages/map").then(module => ({ default: module.MapPage })));
-const ReportsPage = React.lazy(() => import("@/pages/reports").then(module => ({ default: module.ReportsPage })));
-const UsersPage = React.lazy(() => import("@/pages/users").then(module => ({ default: module.UsersPage })));
-const SettingsPage = React.lazy(() => import("@/pages/settings").then(module => ({ default: module.SettingsPage })));
-const ObjectAlertsPage = React.lazy(() => import("@/pages/object-alerts").then(module => ({ default: module.ObjectAlertsPage })));
-const WatchlistPage = React.lazy(() => import("@/pages/watchlist").then(module => ({ default: module.WatchlistPage })));
-const CaseBoardPage = React.lazy(() => import("@/pages/case-board").then(module => ({ default: module.CaseBoardPage })));
-const TimelinePage = React.lazy(() => import("@/pages/timeline").then(module => ({ default: module.TimelinePage })));
-const PlaybookBuilderPage = React.lazy(() => import("@/pages/playbook-builder").then(module => ({ default: module.PlaybookBuilderPage })));
-const ApprovalsPage = React.lazy(() => import("@/pages/approvals").then(module => ({ default: module.ApprovalsPage })));
-const CamerasPage = React.lazy(() => import("@/pages/cameras").then(module => ({ default: module.CamerasPage })));
-const NovaDashboardPage = React.lazy(() => import("@/pages/nova-dashboard").then(module => ({ default: module.NovaDashboardPage })));
+const LoginPage = React.lazy(() => import("@/pages/auth/login").then((m: any) => ({ default: m.default || m.LoginPage })));
+const NotFoundPage = React.lazy(() => import("@/pages/not-found").then((m: any) => ({ default: m.default || m.NotFoundPage })));
+const AIModelsPage = React.lazy(() => import("@/pages/ai-models").then((m: any) => ({ default: m.default || m.AIModelsPage })));
+const DashboardPage = React.lazy(() => import("@/pages/dashboard").then((m: any) => ({ default: m.default || m.DashboardPage })));
+const LiveFeedPage = React.lazy(() => import("@/pages/live-feed").then((m: any) => ({ default: m.default || m.LiveFeedPage })));
+const TrafficAnalyticsPage = React.lazy(() => import("@/pages/traffic").then((m: any) => ({ default: m.default || m.TrafficAnalyticsPage })));
+const IncidentsPage = React.lazy(() => import("@/pages/incidents").then((m: any) => ({ default: m.default || m.IncidentsPage })));
+const SocCenterPage = React.lazy(() => import("@/pages/soc").then((m: any) => ({ default: m.default || m.SocCenterPage })));
+const ThreatIntelPage = React.lazy(() => import("@/pages/threats").then((m: any) => ({ default: m.default || m.ThreatIntelPage })));
+const MapPage = React.lazy(() => import("@/pages/map").then((m: any) => ({ default: m.default || m.MapPage })));
+const ReportsPage = React.lazy(() => import("@/pages/reports").then((m: any) => ({ default: m.default || m.ReportsPage })));
+const UsersPage = React.lazy(() => import("@/pages/users").then((m: any) => ({ default: m.default || m.UsersPage })));
+const SettingsPage = React.lazy(() => import("@/pages/settings").then((m: any) => ({ default: m.default || m.SettingsPage })));
+const ObjectAlertsPage = React.lazy(() => import("@/pages/object-alerts").then((m: any) => ({ default: m.default || m.ObjectAlertsPage })));
+const WatchlistPage = React.lazy(() => import("@/pages/watchlist").then((m: any) => ({ default: m.default || m.WatchlistPage })));
+const CaseBoardPage = React.lazy(() => import("@/pages/case-board").then((m: any) => ({ default: m.default || m.CaseBoardPage })));
+const TimelinePage = React.lazy(() => import("@/pages/timeline").then((m: any) => ({ default: m.default || m.TimelinePage })));
+const PlaybookBuilderPage = React.lazy(() => import("@/pages/playbook-builder").then((m: any) => ({ default: m.default || m.PlaybookBuilderPage })));
+const ApprovalsPage = React.lazy(() => import("@/pages/approvals").then((m: any) => ({ default: m.default || m.ApprovalsPage })));
+const CamerasPage = React.lazy(() => import("@/pages/cameras").then((m: any) => ({ default: m.default || m.CamerasPage })));
+const NovaDashboardPage = React.lazy(() => import("@/pages/nova-dashboard").then((m: any) => ({ default: m.default || m.NovaDashboardPage })));
+const VisionAIPage = React.lazy(() => import("@/pages/vision-ai").then((m: any) => ({ default: m.default || m.VisionAIPage })));
+const SoarControlCenterPage = React.lazy(() => import("@/pages/soar").then((m: any) => ({ default: m.default || m.SoarControlCenterPage })));
+const CommandCenterPage = React.lazy(() => import("@/pages/command-center").then((m: any) => ({ default: m.default || m.CommandCenterPage })));
+
+
 
 // Global loading fallback
 const PageLoader = () => (
@@ -70,6 +75,9 @@ function App() {
                     <Route path="/nova" element={<NovaDashboardPage />} />
                     <Route path="/approvals" element={<ApprovalsPage />} />
                     <Route path="/cameras" element={<CamerasPage />} />
+                    <Route path="/vision-ai" element={<VisionAIPage />} />
+                    <Route path="/soar" element={<SoarControlCenterPage />} />
+                    <Route path="/command-center" element={<CommandCenterPage />} />
                   </Route>
                 </Route>
                 

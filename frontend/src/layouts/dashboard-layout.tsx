@@ -9,15 +9,15 @@ export function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full bg-background overflow-hidden relative">
+    <div className="flex h-screen max-h-screen w-full bg-background overflow-hidden relative select-none">
       {/* Clean solid background */}
 
-      {/* Sidebar - responsive and collapsible */}
+      {/* Sidebar - static, locked to viewport height */}
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-hidden relative z-10 w-full">
-        {/* Header - includes search, notifications, and mobile toggle */}
+      {/* Main Content Area - independent internal vertical scroll */}
+      <main className="flex-1 flex flex-col h-screen max-h-screen overflow-hidden relative z-10 w-full min-w-0">
+        {/* Header - static at top */}
         <Header setMobileOpen={setMobileOpen} />
         
         {/* Scrollable Page Content */}

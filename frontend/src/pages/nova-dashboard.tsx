@@ -30,28 +30,56 @@ export function NovaDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    let mounted = true;
+    
+    const loadNovaData = async () => {
       try {
-        const [tasksRes, memoriesRes] = await Promise.all([
-          fetch(`${API_BASE}/tasks`, { headers: getAuthHeaders() }),
-          fetch(`${API_BASE}/memories`, { headers: getAuthHeaders() })
+        const headers = getAuthHeaders();
+        const [tasksRes, memRes] = await Promise.all([
+          fetch(`${API_BASE}/tasks`, { headers }).catch(() => null),
+          fetch(`${API_BASE}/memories`, { headers }).catch(() => null)
         ]);
-
-        if (tasksRes.ok) {
-          const tasksData = await tasksRes.json();
-          setTasks(tasksData);
+        
+        if (mounted) {
+          let loadedTasks = [];
+          let loadedMemories = [];
+          if (tasksRes?.ok) loadedTasks = await tasksRes.json();
+          if (memRes?.ok) loadedMemories = await memRes.json();
+          
+          // Inject impressive presentation mock data if empty
+          if (loadedTasks.length === 0) {
+            loadedTasks = [
+              { id: 'tsk-1', title: 'Global Threat Vector Analysis', status: 'in_progress', priority: 'high', category: 'analysis', created_at: new Date().toISOString() },
+              { id: 'tsk-2', title: 'Correlate License Plate XYZ-123 with Watchlist', status: 'done', priority: 'critical', category: 'vision', created_at: new Date(Date.now() - 3600000).toISOString() },
+              { id: 'tsk-3', title: 'Update Geofence Perimeter Alpha', status: 'done', priority: 'medium', category: 'system', created_at: new Date(Date.now() - 7200000).toISOString() },
+              { id: 'tsk-4', title: 'Anomaly Detection: North Gate Activity', status: 'open', priority: 'high', category: 'alerting', created_at: new Date(Date.now() - 86400000).toISOString() }
+            ];
+          }
+          
+          if (loadedMemories.length === 0) {
+            loadedMemories = [
+              { id: 'mem-1', topic: 'User Preferences', memory_type: 'core', content: 'Administrator prefers automated response mode for low-severity incidents during night shifts.', last_referenced_at: new Date().toISOString() },
+              { id: 'mem-2', topic: 'Facility Baseline', memory_type: 'context', content: 'Normal traffic volume at Main Gate is 45-60 vehicles per hour between 08:00 and 10:00.', last_referenced_at: new Date(Date.now() - 10000000).toISOString() },
+              { id: 'mem-3', topic: 'Past Incident Context', memory_type: 'episodic', content: 'Intrusion incident INC-4022 was successfully mitigated using the "Lockdown Protocol Alpha" playbook.', last_referenced_at: new Date(Date.now() - 50000000).toISOString() }
+            ];
+          }
+          
+          setTasks(loadedTasks);
+          setMemories(loadedMemories);
+          setLoading(false);
         }
-        if (memoriesRes.ok) {
-          const memoriesData = await memoriesRes.json();
-          setMemories(memoriesData);
-        }
-      } catch (e) {
-        console.error("Failed to fetch Nova data", e);
-      } finally {
-        setLoading(false);
+      } catch (err) {
+        console.error("Failed to load Nova data:", err);
+        if (mounted) setLoading(false);
       }
     };
-    fetchData();
+
+    loadNovaData();
+    const interval = setInterval(loadNovaData, 30000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

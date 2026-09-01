@@ -14,7 +14,7 @@ interface Notification {
 
 const INITIAL_NOTIFICATIONS: Notification[] = [
   { id: '1', title: 'High CPU Usage', message: 'AI Model Server is experiencing high load.', category: 'alert', read: false, timestamp: '2m ago' },
-  { id: '2', title: 'System Update', message: 'SentinelVision v2.4.1 has been deployed.', category: 'system', read: false, timestamp: '1h ago' },
+  { id: '2', title: 'System Update', message: 'VIGILORA AI v2.4.1 has been deployed.', category: 'system', read: false, timestamp: '1h ago' },
   { id: '3', title: 'New Camera Added', category: 'update', message: 'Camera CAM-045 has been provisioned.', read: true, timestamp: '3h ago' },
 ];
 

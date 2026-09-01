@@ -18,8 +18,8 @@ self.onmessage = (e) => {
       for (let i = 0; i < numDetections; i++) {
         const cls = CLASSES[Math.floor(Math.random() * CLASSES.length)];
         
-        // Only emit weapons and persons to keep it relevant
-        if (cls !== 'person' && cls !== 'weapon') continue;
+        // Only emit persons to avoid false positive weapons during demo
+        if (cls !== 'person') continue;
         
         const confidence = 0.6 + Math.random() * 0.39;
         

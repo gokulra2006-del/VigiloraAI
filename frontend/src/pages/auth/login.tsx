@@ -39,8 +39,8 @@ export function LoginPage() {
           <div className="w-16 h-16 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center mb-6 shadow-2xl">
             <BrainCircuit size={32} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Welcome to SentinelVision</h1>
-          <p className="text-zinc-400 mt-2 text-sm font-medium">Sign in to access your dashboard</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Welcome to VIGILORA AI</h1>
+          <p className="text-zinc-400 mt-2 text-sm font-medium">Intelligent Visual Monitoring & Detection Platform</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,3 +96,6 @@ export function LoginPage() {
     </div>
   );
 }
+
+export default LoginPage;
+

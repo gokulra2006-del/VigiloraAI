@@ -86,7 +86,7 @@ async def handle_incident(incident: Incident):
         response = await client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1024,
-            system="You are Nova, an expert AI security operator for SentinelVision. Your job is to assess incidents rapidly and output structured response plans.",
+            system="You are Nova, an expert AI security operator for VIGILORA AI. Your job is to assess incidents rapidly and output structured response plans.",
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -181,7 +181,7 @@ async def handle_chat(message: str, history: list, context: dict) -> str:
 
     client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
-    system_prompt = f"""You are OG, an expert AI security operator embedded in SentinelVision.
+    system_prompt = f"""You are OG, an expert AI security operator embedded in VIGILORA AI.
 You have access to live platform data. Be concise, professional, and use markdown formatting.
 If the user asks you to perform an action or lookup data, use your tools! Always answer the user in natural language after using a tool.
 

@@ -46,9 +46,9 @@ class NovaNotificationManager:
             "token": settings.PUSHOVER_API_TOKEN,
             "user": settings.PUSHOVER_USER_KEY,
             "title": f"🚨 Nova Alert: {event_data.get('severity', 'Alert').upper()}",
-            "message": event_data.get("summary", "New Sentinel Event"),
+            "message": event_data.get("summary", "New VIGILORA Event"),
             "url": "http://localhost:5173",  # Link to dashboard
-            "url_title": "Open SentinelVision"
+            "url_title": "Open VIGILORA AI"
         }
         try:
             async with session.post("https://api.pushover.net/1/messages.json", data=payload) as resp:

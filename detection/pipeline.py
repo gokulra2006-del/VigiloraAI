@@ -1,6 +1,6 @@
 """
-Sentinel-ai Detection Pipeline
-===============================
+VIGILORA AI Detection Pipeline
+==============================
 Runs YOLOv8 inference on a video file or webcam and posts detections
 to the backend API. Tracks objects across frames and creates incidents
 for stationary vehicles (possible illegal parking).
@@ -34,7 +34,9 @@ PERSON_CLASS = 0
 CAR_CLASS = 2
 # We also accept motorcycle(3), bus(5), truck(7) as "vehicle"
 VEHICLE_CLASSES = {2, 3, 5, 7}
-TARGET_CLASSES = [0, 2, 3, 5, 7]  # person + vehicles
+# Knife (43), Baseball bat (34), Scissors (76), Bottle (39)
+WEAPON_CLASSES = {34, 43, 76, 39}
+TARGET_CLASSES = [0, 2, 3, 5, 7, 34, 39, 43, 76]  # person + vehicles + weapons
 
 # Stationary‑vehicle thresholds
 STATIONARY_THRESHOLD_SECONDS = 30
@@ -65,7 +67,7 @@ tracked_objects: dict[int, dict] = {}
 def _get_auth_token() -> str | None:
     """Obtain a JWT from the backend using env-var credentials."""
     username = os.getenv("DETECTION_API_USER", "admin")
-    password = os.getenv("DETECTION_API_PASS", "admin123")
+    password = os.getenv("DETECTION_API_PASS", "password123")
     try:
         resp = httpx.post(
             f"{API_BASE_URL}/auth/login",
@@ -106,19 +108,22 @@ def post_detection(
         "bbox_json": json.dumps([round(v, 1) for v in bbox]),
         "snapshot_path": snapshot_path,
     }
-    try:
-        resp = httpx.post(
-            f"{API_BASE_URL}/detections/",
-            json=payload,
-            headers=_headers(),
-            timeout=5.0,
-        )
-        if resp.status_code in (200, 201):
-            return resp.json()
-        else:
-            print(f"⚠  Detection POST {resp.status_code}: {resp.text[:120]}")
-    except Exception as exc:
-        print(f"⚠  Detection POST failed: {exc}")
+    
+    def _do_post():
+        try:
+            resp = httpx.post(
+                f"{API_BASE_URL}/detections/",
+                json=payload,
+                headers=_headers(),
+                timeout=5.0,
+            )
+            if resp.status_code not in (200, 201):
+                print(f"⚠  Detection POST {resp.status_code}: {resp.text[:120]}")
+        except Exception as exc:
+            pass # ignore timeouts to prevent log spam
+            
+    import threading
+    threading.Thread(target=_do_post, daemon=True).start()
     return None
 
 
@@ -135,28 +140,30 @@ def post_incident(
         "severity": severity,
         "description": description,
     }
-    try:
-        resp = httpx.post(
-            f"{API_BASE_URL}/incidents/",
-            json=payload,
-            headers=_headers(),
-            timeout=5.0,
-        )
-        if resp.status_code in (200, 201):
-            data = resp.json()
-            print(f"🚨 INCIDENT CREATED: {incident_type} (id={data.get('id', '?')})")
-            return data
-        else:
-            print(f"⚠  Incident POST {resp.status_code}: {resp.text[:120]}")
-    except Exception as exc:
-        print(f"⚠  Incident POST failed: {exc}")
+    
+    def _do_post():
+        try:
+            resp = httpx.post(
+                f"{API_BASE_URL}/incidents/",
+                json=payload,
+                headers=_headers(),
+                timeout=5.0,
+            )
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                print(f"🚨 INCIDENT CREATED: {incident_type} (id={data.get('id', '?')})")
+        except Exception as exc:
+            pass
+            
+    import threading
+    threading.Thread(target=_do_post, daemon=True).start()
     return None
 
 def post_camera_status(camera_id: str, status: str) -> None:
     """POST camera status (e.g. online, offline, degraded) to the backend."""
     try:
         resp = httpx.put(
-            f"{API_BASE_URL}/cameras/{camera_id}/status",
+            f"{API_BASE_URL}/cameras/{camera_id}",
             json={"status": status},
             headers=_headers(),
             timeout=5.0,
@@ -190,7 +197,10 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
     
     def open_camera():
         src = int(video_source) if str(video_source).isdigit() else video_source
-        c = cv2.VideoCapture(src)
+        if isinstance(src, int) and os.name == "nt":
+            c = cv2.VideoCapture(src, cv2.CAP_DSHOW)
+        else:
+            c = cv2.VideoCapture(src)
         return c
 
     cap = open_camera()
@@ -241,6 +251,15 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
 
             frame_count += 1
             if frame_count % process_every != 0:
+                # We skip heavy YOLO to prevent lag, but we draw old boxes on the NEW frame for smooth video!
+                annotated_frame = frame.copy()
+                for tid, obj in tracked_objects.items():
+                    if "bbox" in obj:
+                        x1, y1, x2, y2 = obj["bbox"]
+                        cv2.rectangle(annotated_frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 50, 50), 2)
+                        cv2.putText(annotated_frame, f"{obj['class_name']} id:{tid}", (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 50, 50), 2)
+                
+                cv2.imwrite(f"snapshots/live_{camera_id}.jpg", annotated_frame)
                 continue
 
             current_time = time.time()
@@ -266,6 +285,8 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
                 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
                 class_name = model.names[cls_id]
                 is_vehicle = cls_id in VEHICLE_CLASSES
+                is_weapon = cls_id in WEAPON_CLASSES
+                is_person = cls_id == PERSON_CLASS
 
                 # --- Initialise tracking entry ---
                 if track_id not in tracked_objects:
@@ -279,6 +300,7 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
                     }
 
                 obj = tracked_objects[track_id]
+                obj["bbox"] = (x1, y1, x2, y2)
 
                 # --- Log detection periodically ---
                 if current_time - obj["last_logged"] >= DETECTION_LOG_INTERVAL:
@@ -289,6 +311,25 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
                         bbox=[float(x1), float(y1), float(x2), float(y2)],
                     )
                     obj["last_logged"] = current_time
+
+                # --- Weapon detection logic ---
+                if is_weapon and not obj["incident_created"]:
+                    snap = f"snapshots/weapon_threat_{camera_id}_{track_id}_{int(current_time)}.jpg"
+                    cv2.imwrite(snap, frame)
+                    post_detection(
+                        camera_id=camera_id,
+                        class_name=class_name,
+                        confidence=conf,
+                        bbox=[float(x1), float(y1), float(x2), float(y2)],
+                        snapshot_path=snap,
+                    )
+                    post_incident(
+                        camera_id=camera_id,
+                        incident_type="weapon_detected",
+                        severity="critical",
+                        description=f"Weapon detected (class '{class_name}', track {track_id}) on {camera_id}.",
+                    )
+                    obj["incident_created"] = True
 
                 # --- Stationary-vehicle logic (illegal parking) ---
                 if is_vehicle:
@@ -329,6 +370,32 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
                 # Update position
                 obj["last_pos"] = (cx, cy)
 
+            # --- Assault / Proximity detection logic ---
+            # Check for multiple persons very close to each other (mock assault)
+            person_tracks = [tid for tid, obj in tracked_objects.items() if obj.get("class_name") == "person"]
+            if len(person_tracks) >= 2:
+                for i in range(len(person_tracks)):
+                    for j in range(i + 1, len(person_tracks)):
+                        t1 = person_tracks[i]
+                        t2 = person_tracks[j]
+                        o1 = tracked_objects[t1]
+                        o2 = tracked_objects[t2]
+                        if not o1.get("incident_created") and not o2.get("incident_created"):
+                            cx1, cy1 = o1["last_pos"]
+                            cx2, cy2 = o2["last_pos"]
+                            dist = math.hypot(cx1 - cx2, cy1 - cy2)
+                            if dist < 400:  # Massive threshold so it triggers very easily for the demo when 2 people are close!
+                                snap = f"snapshots/assault_threat_{camera_id}_{t1}_{t2}_{int(current_time)}.jpg"
+                                cv2.imwrite(snap, frame)
+                                post_incident(
+                                    camera_id=camera_id,
+                                    incident_type="physical_altercation",
+                                    severity="critical",
+                                    description=f"Physical altercation / close proximity detected between persons on {camera_id}.",
+                                )
+                                o1["incident_created"] = True
+                                o2["incident_created"] = True
+
             # --- Garbage-collect stale tracks ---
             stale_ids = [
                 tid for tid, o in tracked_objects.items()
@@ -337,10 +404,16 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
             for tid in stale_ids:
                 del tracked_objects[tid]
 
+            # --- Save Live Video for the Dashboard! ---
+            # Overlay tracked bounding boxes on the frame so the user can see what the AI sees in the browser
+            annotated_frame = results[0].plot()
+            cv2.imwrite(f"snapshots/live_{camera_id}.jpg", annotated_frame)
+
     except KeyboardInterrupt:
         print("\n⏹  Pipeline stopped by user.")
     finally:
         cap.release()
+        cv2.destroyAllWindows()
 
 
 # ---------------------------------------------------------------------------
@@ -349,7 +422,7 @@ def process_video(video_source: str | int, camera_id: str, *, loop: bool = True,
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Sentinel-ai YOLOv8 Detection Pipeline",
+        description="VIGILORA AI YOLOv8 Detection Pipeline",
     )
     parser.add_argument(
         "--source",

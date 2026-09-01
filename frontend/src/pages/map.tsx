@@ -7,6 +7,8 @@ import { Search, Filter, Layers, Navigation, Settings, Plus, RefreshCw, Shield, 
 import { fetchRiskHeatmap, recomputeRiskScores, RiskZone } from '@/services/api/risk-scores';
 import { fetchObjectAlerts } from '@/services/api/object-alerts';
 import { fetchZones, Zone } from '@/services/api/geofence';
+import { fetchCameras, Camera } from '@/services/api/cameras';
+import { fetchIncidents, Incident } from '@/services/api/incidents';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Fix for default leaflet marker icons in React
@@ -33,10 +35,7 @@ const hospitalIcon = createIcon('#10b981');
 const vehicleIcon  = createIcon('#f59e0b');
 const weaponIcon   = createIcon('#ef4444', true);
 
-const patrolRoute: [number, number][] = [
-  [40.7140, -74.0040], [40.7150, -74.0050], [40.7170, -74.0020],
-  [40.7180, -73.9980], [40.7160, -73.9950]
-];
+// Removed hardcoded patrolRoute
 
 function riskColor(level: string): string {
   switch (level) {
@@ -65,6 +64,9 @@ export function MapPage() {
   const [geofences, setGeofences] = useState<Zone[]>([]);
   const [recentWeapons, setRecentWeapons] = useState<any[]>([]);
   const [showRiskPanel, setShowRiskPanel] = useState(false);
+  const [cameras, setCameras] = useState<Camera[]>([]);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [computing, setComputing] = useState(false);
 
   useEffect(() => {
@@ -76,6 +78,20 @@ export function MapPage() {
     fetchRiskHeatmap().then(res => setRiskZones(res || [])).catch(() => {});
     fetchObjectAlerts({ threat_only: true, limit: 10 }).then(res => setRecentWeapons(res || [])).catch(() => {});
     fetchZones().then(res => setGeofences(res || [])).catch(() => {});
+    fetchCameras().then(res => setCameras(res || [])).catch(() => {});
+    fetchIncidents().then(res => setIncidents(res || [])).catch(() => {});
+
+    // Live Telemetry Tracking
+    const ws = new WebSocket('ws://127.0.0.1:8000/api/v1/telemetry/ws');
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === 'VEHICLE_TELEMETRY') {
+          setVehicles(payload.data);
+        }
+      } catch (e) {}
+    };
+    return () => ws.close();
   }, []);
 
   const handleRecompute = async () => {
@@ -296,29 +312,44 @@ export function MapPage() {
                   </LayersControl.Overlay>
                 )}
 
-                {/* Existing layers */}
+                {/* Dynamic Live Cameras */}
                 <LayersControl.Overlay checked name="Cameras">
                   <LayerGroup>
-                    <Marker position={[40.7128, -74.0060]} icon={cameraIcon}>
-                      <Popup>
-                        <div className="font-semibold text-sm">CAM-01 (Main St)</div>
-                        <div className="text-xs text-emerald-500">Status: Online</div>
-                      </Popup>
-                    </Marker>
-                    <Marker position={[40.7200, -74.0100]} icon={cameraIcon} />
-                    <Marker position={[40.7150, -73.9900]} icon={cameraIcon} />
+                    {cameras.map(cam => (
+                      cam.location_lat && cam.location_lng && (
+                        <Marker key={cam.id} position={[cam.location_lat, cam.location_lng]} icon={cameraIcon}>
+                          <Popup>
+                            <div className="font-semibold text-sm">{cam.name}</div>
+                            <div className={`text-xs ${cam.status === 'online' ? 'text-emerald-500' : 'text-red-500'}`}>Status: {cam.status}</div>
+                          </Popup>
+                        </Marker>
+                      )
+                    ))}
                   </LayerGroup>
                 </LayersControl.Overlay>
 
+                {/* Dynamic Active Incidents */}
                 <LayersControl.Overlay checked name="Active Incidents">
                   <LayerGroup>
-                    <Marker position={[40.7100, -74.0000]} icon={incidentIcon}>
-                      <Popup>
-                        <div className="font-semibold text-sm text-red-500">INC-4022</div>
-                        <div className="text-xs">Intrusion Detected</div>
-                      </Popup>
-                    </Marker>
-                    <Circle center={[40.7100, -74.0000]} radius={150} pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.15, dashArray: '4, 4' }} />
+                    {incidents.filter(inc => inc.status !== 'resolved' && inc.status !== 'closed').map(inc => {
+                      // Find camera coordinates for incident
+                      const cam = cameras.find(c => c.id === inc.camera_id);
+                      const pos: [number, number] = cam?.location_lat && cam?.location_lng 
+                        ? [cam.location_lat, cam.location_lng] 
+                        : [40.7100, -74.0000]; // Fallback
+
+                      return (
+                        <React.Fragment key={inc.id}>
+                          <Marker position={pos} icon={incidentIcon}>
+                            <Popup>
+                              <div className="font-semibold text-sm text-red-500">{inc.type.toUpperCase()}</div>
+                              <div className="text-xs">Severity: {inc.severity}</div>
+                            </Popup>
+                          </Marker>
+                          <Circle center={pos} radius={150} pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.15, dashArray: '4, 4' }} />
+                        </React.Fragment>
+                      )
+                    })}
                   </LayerGroup>
                 </LayersControl.Overlay>
 
@@ -334,15 +365,17 @@ export function MapPage() {
                   </LayerGroup>
                 </LayersControl.Overlay>
 
+                {/* Dynamic Live Vehicles from Telemetry WebSocket */}
                 <LayersControl.Overlay checked name="Live Vehicles (Patrols)">
                   <LayerGroup>
-                    <Polyline positions={patrolRoute} pathOptions={{ color: '#f59e0b', weight: 3, opacity: 0.7, dashArray: '8, 8' }} />
-                    <Marker position={patrolRoute[0]} icon={vehicleIcon}>
-                      <Popup>
-                        <div className="font-semibold text-sm text-amber-500">Patrol Unit 07</div>
-                        <div className="text-xs">Speed: 45 km/h<br />Status: En Route</div>
-                      </Popup>
-                    </Marker>
+                    {vehicles.map(v => (
+                      <Marker key={v.id} position={[v.lat, v.lng]} icon={vehicleIcon}>
+                        <Popup>
+                          <div className="font-semibold text-sm text-amber-500">{v.name}</div>
+                          <div className="text-xs">Heading: {v.heading.toFixed(0)}°<br />Status: {v.status}</div>
+                        </Popup>
+                      </Marker>
+                    ))}
                   </LayerGroup>
                 </LayersControl.Overlay>
               </LayersControl>

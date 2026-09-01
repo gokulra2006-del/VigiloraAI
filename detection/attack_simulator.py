@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Sentinel-AI Attack Simulator
-==============================
+VIGILORA AI Attack Simulator
+============================
 A standalone script that fires a complete, realistic, multi-stage
-cyber-physical attack scenario against your running Sentinel-AI backend.
+cyber-physical attack scenario against your running VIGILORA AI backend.
 
 Each scenario creates REAL database records viewable in the dashboard.
 
@@ -376,7 +376,7 @@ SCENARIOS = {
 
 def show_menu():
     if HAS_RICH:
-        table = Table(title="Sentinel-AI Attack Simulator", border_style="red", show_lines=True)
+        table = Table(title="VIGILORA AI Attack Simulator", border_style="red", show_lines=True)
         table.add_column("#", style="bold red", width=4)
         table.add_column("Scenario", style="white")
         table.add_column("MITRE Coverage", style="dim")
@@ -394,7 +394,7 @@ def show_menu():
         table.add_row("q", "[dim]Quit[/dim]", "")
         console.print(table)
     else:
-        print("\nSentinel-AI Attack Simulator")
+        print("\nVIGILORA AI Attack Simulator")
         print("-" * 40)
         for k, (name, _) in SCENARIOS.items():
             print(f"  {k}: {name}")
@@ -405,21 +405,21 @@ def show_menu():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Sentinel-AI Attack Simulator")
+    parser = argparse.ArgumentParser(description="VIGILORA AI Attack Simulator")
     parser.add_argument("--scenario", default=None,
                         help="Scenario to run: 1-6, 'all', or omit for interactive menu")
     args = parser.parse_args()
 
     if HAS_RICH:
         console.print(Panel(
-            "[bold red]SENTINEL-AI ATTACK SIMULATOR[/bold red]\n"
+            "[bold red]VIGILORA AI ATTACK SIMULATOR[/bold red]\n"
             "[dim]Generates REAL attack data in your database.[/dim]\n"
             "[yellow]For development/demo purposes only.[/yellow]",
             border_style="red"
         ))
     else:
         print("\n" + "="*60)
-        print("  SENTINEL-AI ATTACK SIMULATOR")
+        print("  VIGILORA AI ATTACK SIMULATOR")
         print("  Generates REAL attack data in your database.")
         print("="*60)
 
@@ -452,9 +452,9 @@ def main():
             fn()
             time.sleep(2)
         if HAS_RICH:
-            console.print(Panel("[bold green]ALL SCENARIOS COMPLETE![/bold green]\nCheck your Sentinel-AI dashboard.", border_style="green"))
+            console.print(Panel("[bold green]ALL SCENARIOS COMPLETE![/bold green]\nCheck your VIGILORA AI dashboard.", border_style="green"))
         else:
-            print("\n[ALL SCENARIOS COMPLETE] Check your Sentinel-AI dashboard.")
+            print("\n[ALL SCENARIOS COMPLETE] Check your VIGILORA AI dashboard.")
     elif choice in SCENARIOS:
         SCENARIOS[choice][1]()
     else:

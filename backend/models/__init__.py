@@ -19,6 +19,8 @@ from .assets import (
     PlaybookApproval,
     RiskScore,
     IncidentReport,
+    VisionIncident,
+    SOARAuditLog,
 )
 from .nova import (
     Memory,
@@ -35,6 +37,7 @@ from .traffic import (
     Alert,
     AuditLog,
 )
+from .audio import AudioEvent
 
 __all__ = [
     "AlertChannel",
@@ -70,5 +73,9 @@ __all__ = [
     "LicensePlateRecord",
     "Alert",
     "AuditLog",
+    # Multimodal Audio & Vision
+    "AudioEvent",
+    "VisionIncident",
+    "SOARAuditLog",
 ]
 

@@ -5,21 +5,23 @@ from models.enums import IncidentStatusEnum, SeverityEnum, AutonomyTierEnum, App
 class IncidentCreate(BaseModel):
     camera_id: str | None = None
     type: str
-    severity: SeverityEnum = SeverityEnum.medium
+    severity: str = "medium"
     description: str | None = None
     zone: str | None = None
-    source: AlertSourceEnum = AlertSourceEnum.camera
+    source: AlertSourceEnum | str | None = "camera"
     model_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    
+    model_config = {"protected_namespaces": ()}
 
 class IncidentTransition(BaseModel):
-    status: IncidentStatusEnum
+    status: str
 
 class IncidentResponse(BaseModel):
     id: str
     camera_id: str | None
     type: str
-    severity: SeverityEnum
-    status: IncidentStatusEnum
+    severity: str
+    status: str
     description: str | None
     assigned_to: str | None
     case_id: str | None = None
@@ -40,4 +42,4 @@ class IncidentResponse(BaseModel):
     evidence_refs: list | None = None
     audit_history: list | None = None
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "protected_namespaces": ()}

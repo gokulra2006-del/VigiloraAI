@@ -540,7 +540,7 @@ export function AlertChannelsPanel() {
       <Card className="bg-zinc-900/40 border-white/5">
         <CardContent className="pt-4">
           <p className="text-[12px] text-muted-foreground leading-relaxed">
-            <span className="text-white font-medium">How it works:</span> When a new incident is created, Sentinel-AI automatically evaluates all enabled channels. Alerts fire only if the incident severity meets the channel's minimum threshold. The pipeline's <code className="font-mono bg-zinc-800 px-1 py-0.5 rounded text-xs">POST /incidents/</code> call triggers this automatically — no manual steps needed.
+            <span className="text-white font-medium">How it works:</span> When a new incident is created, VIGILORA AI automatically evaluates all enabled channels. Alerts fire only if the incident severity meets the channel's minimum threshold. The pipeline's <code className="font-mono bg-zinc-800 px-1 py-0.5 rounded text-xs">POST /incidents/</code> call triggers this automatically — no manual steps needed.
           </p>
         </CardContent>
       </Card>

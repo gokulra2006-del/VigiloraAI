@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Settings, ShieldAlert,
   Activity, CarFront, Siren, ShieldBan, Map as MapIcon,
   FileText, Users, Crosshair, UserCheck, Briefcase, Film,
-  Zap, BrainCircuit, CheckSquare, Video, Bot,
+  Zap, BrainCircuit, CheckSquare, Video, Bot, Eye, Workflow, Mic
 } from 'lucide-react';
 
 export interface SidebarItemConfig {
@@ -25,12 +25,14 @@ export const sidebarSections: SidebarSectionConfig[] = [
       { label: 'Dashboard',      path: '/dashboard', icon: LayoutDashboard },
       { label: 'Live Feed',      path: '/feed',       icon: Activity },
       { label: 'GIS Map',        path: '/map',        icon: MapIcon },
+      { label: 'Command Center', path: '/command-center', icon: Mic, badge: 'GOD MODE' },
       { label: 'OG AI',          path: '/nova',       icon: Bot,         badge: 'AI' },
     ]
   },
   {
     title: 'Detection',
     items: [
+      { label: 'Vision AI',      path: '/vision-ai',     icon: Eye,         badge: 'AI' },
       { label: 'Object Alerts',  path: '/object-alerts', icon: Crosshair,   badge: 'LIVE' },
       { label: 'Cameras',        path: '/cameras',       icon: Video },
       { label: 'Watchlist',      path: '/watchlist',     icon: UserCheck },
@@ -49,10 +51,11 @@ export const sidebarSections: SidebarSectionConfig[] = [
   {
     title: 'Automation',
     items: [
-      { label: 'Playbooks',      path: '/playbooks',     icon: Zap,         badge: 'NEW' },
+      { label: 'SOAR Engine',    path: '/soar',          icon: Zap,         badge: 'PRO' },
+      { label: 'Playbooks',      path: '/playbooks',     icon: Workflow },
       { label: 'Approvals',      path: '/approvals',     icon: CheckSquare },
       { label: 'SOC Center',     path: '/soc',           icon: Siren },
-      { label: 'Threat Intel',   path: '/threats',       icon: ShieldBan },
+      { label: 'Predictive Intel', path: '/threats',       icon: ShieldBan,   badge: 'AI' },
     ]
   },
   {

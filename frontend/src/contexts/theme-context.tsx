@@ -13,7 +13,7 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  theme: 'dark', // Default to dark for Sentinel-ai
+  theme: 'dark', // Default to dark for VIGILORA AI
   accentColor: 'zinc',
   roundedCorners: true,
   setTheme: () => null,

@@ -58,7 +58,7 @@ async def _send_slack(session: aiohttp.ClientSession, channel: AlertChannel, ctx
         "blocks": [
             {
                 "type": "header",
-                "text": {"type": "plain_text", "text": f"{severity_emoji} Sentinel-AI Alert: {ctx['type']}"},
+                "text": {"type": "plain_text", "text": f"{severity_emoji} VIGILORA AI Alert: {ctx['type']}"},
             },
             {
                 "type": "section",
@@ -101,7 +101,7 @@ async def _send_discord(session: aiohttp.ClientSession, channel: AlertChannel, c
                     {"name": "Incident ID", "value": f"`{ctx['id']}`", "inline": True},
                     {"name": "Detected At", "value": ctx["detected_at"], "inline": False},
                 ],
-                "footer": {"text": "Sentinel-AI Security Platform"},
+                "footer": {"text": "VIGILORA AI Security Platform"},
             }
         ]
     }
@@ -121,7 +121,7 @@ async def _send_telegram(session: aiohttp.ClientSession, channel: AlertChannel, 
     emoji_map = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
     emoji = emoji_map.get(ctx["severity"], "⚪")
     text = (
-        f"{emoji} *SENTINEL ALERT — {ctx['type'].replace('_', ' ').upper()}*\n\n"
+        f"{emoji} *VIGILORA ALERT — {ctx['type'].replace('_', ' ').upper()}*\n\n"
         f"*Severity:* {ctx['severity'].upper()}\n"
         f"*Camera:* {ctx['camera_id']}\n"
         f"*Detected:* {ctx['detected_at']}\n"
@@ -155,11 +155,11 @@ async def _send_email(channel: AlertChannel, ctx: dict) -> bool:
         logger.warning("[Alerting] Email channel missing SMTP config or destination address.")
         return False
 
-    subject = f"[Sentinel-AI] {ctx['severity'].upper()} Alert: {ctx['type']}"
+    subject = f"[VIGILORA AI] {ctx['severity'].upper()} Alert: {ctx['type']}"
     html_body = f"""
     <html><body style="font-family:sans-serif; background:#0a0a0b; color:#eee; padding:24px;">
       <div style="max-width:560px; margin:0 auto; background:#18181b; border-radius:8px; padding:24px; border:1px solid #27272a;">
-        <h2 style="color:#ef4444; margin:0 0 16px">🚨 Sentinel-AI Security Alert</h2>
+        <h2 style="color:#ef4444; margin:0 0 16px">🚨 VIGILORA AI Security Alert</h2>
         <table style="width:100%; border-collapse:collapse;">
           <tr><td style="padding:6px 0; color:#a1a1aa;">Type</td><td style="padding:6px 0; font-weight:bold;">{ctx['type']}</td></tr>
           <tr><td style="padding:6px 0; color:#a1a1aa;">Severity</td><td style="padding:6px 0; color:#f97316; font-weight:bold;">{ctx['severity'].upper()}</td></tr>
@@ -168,7 +168,7 @@ async def _send_email(channel: AlertChannel, ctx: dict) -> bool:
           <tr><td style="padding:6px 0; color:#a1a1aa;">ID</td><td style="padding:6px 0; font-family:monospace;">{ctx['id']}</td></tr>
         </table>
         <p style="margin-top:16px; color:#d4d4d8;">{ctx['description']}</p>
-        <p style="margin-top:24px; font-size:12px; color:#52525b;">Sent by Sentinel-AI Automated Alerting</p>
+        <p style="margin-top:24px; font-size:12px; color:#52525b;">Sent by VIGILORA AI Automated Alerting</p>
       </div>
     </body></html>
     """
@@ -208,7 +208,7 @@ async def _send_sms(session: aiohttp.ClientSession, channel: AlertChannel, ctx: 
         return False
 
     body = (
-        f"SENTINEL ALERT [{ctx['severity'].upper()}]: {ctx['type']} detected on {ctx['camera_id']}. "
+        f"VIGILORA ALERT [{ctx['severity'].upper()}]: {ctx['type']} detected on {ctx['camera_id']}. "
         f"ID: {ctx['id']}"
     )
     url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
@@ -288,7 +288,7 @@ async def test_channel(channel: AlertChannel) -> tuple[bool, str]:
         "id": "test-000000",
         "type": "test_alert",
         "severity": "high",
-        "description": "This is a test alert from Sentinel-AI. If you see this, your channel is configured correctly.",
+        "description": "This is a test alert from VIGILORA AI. If you see this, your channel is configured correctly.",
         "camera_id": "test-cam",
         "detected_at": "2026-01-01T00:00:00Z",
     }

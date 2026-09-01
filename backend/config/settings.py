@@ -11,9 +11,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     # --- Project metadata ---
-    PROJECT_NAME: str = "SentinelVision API"
+    PROJECT_NAME: str = "VIGILORA AI API"
     VERSION: str = "1.0.0"
-    DESCRIPTION: str = "Backend API for the SentinelVision surveillance platform."
+    DESCRIPTION: str = "VIGILORA AI — Intelligent Visual Monitoring & Detection Platform"
     API_V1_PREFIX: str = "/api/v1"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     FIRST_ADMIN_PASSWORD: str = "password123"
     AUTO_CREATE_TABLES: bool = True
     SEED_ADMIN: bool = True
+    
+    # --- Multimodal (Audio + Video) Settings ---
+    MULTIMODAL_CORRELATION_WINDOW_SECONDS: int = 10
+    AUDIO_SAMPLE_RATE: int = 16000
     
     # --- Nova Assistant (LLM + Notifications) ---
     ANTHROPIC_API_KEY: str | None = None
