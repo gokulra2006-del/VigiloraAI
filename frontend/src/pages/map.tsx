@@ -49,7 +49,7 @@ function riskColor(level: string): string {
 
 // Helper to compute centroid of a polygon
 function computeCentroid(coords: [number, number][]): [number, number] {
-  if (!coords || coords.length === 0) return [40.7128, -74.0060];
+  if (!coords || coords.length === 0) return [13.0827, 80.2707];
   let lat = 0, lng = 0;
   for (const [x, y] of coords) {
     lat += x;
@@ -74,12 +74,29 @@ export function MapPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const MOCK_CHENNAI_RISK = [
+    { zone_id: 'z-alpha', zone_name: 'Sector Alpha', score: 85, level: 'critical', polygon_coords: [[13.0850, 80.2700], [13.0850, 80.2780], [13.0800, 80.2750], [13.0800, 80.2700]] as [number, number][] },
+    { zone_id: 'z-beta', zone_name: 'Sector Beta', score: 45, level: 'medium', polygon_coords: [[13.0900, 80.2600], [13.0900, 80.2650], [13.0850, 80.2650], [13.0850, 80.2600]] as [number, number][] }
+  ];
+
   useEffect(() => {
-    fetchRiskHeatmap().then(res => setRiskZones(res || [])).catch(() => {});
-    fetchObjectAlerts({ threat_only: true, limit: 10 }).then(res => setRecentWeapons(res || [])).catch(() => {});
-    fetchZones().then(res => setGeofences(res || [])).catch(() => {});
-    fetchCameras().then(res => setCameras(res || [])).catch(() => {});
+    setRiskZones(MOCK_CHENNAI_RISK);
+    setGeofences([
+      { id: 'zone-1', name: 'Restricted Sector Alpha', polygon_coords: [[13.0850, 80.2700], [13.0850, 80.2780], [13.0800, 80.2750], [13.0800, 80.2700]], rule: 'No unauthorized access', color: '#ef4444', status: 'active', created_at: '' },
+      { id: 'zone-2', name: 'Patrol Route Beta', polygon_coords: [[13.0900, 80.2600], [13.0900, 80.2650], [13.0850, 80.2650], [13.0850, 80.2600]], rule: 'Standard monitoring', color: '#f59e0b', status: 'active', created_at: '' }
+    ]);
+    
+    fetchCameras().then(res => {
+      const chennaiCams = (res || []).map((cam: any, i: number) => ({
+        ...cam,
+        location_lat: 13.0827 + (Math.cos(i) * 0.015),
+        location_lng: 80.2707 + (Math.sin(i) * 0.015)
+      }));
+      setCameras(chennaiCams);
+    }).catch(() => {});
+    
     fetchIncidents().then(res => setIncidents(res || [])).catch(() => {});
+    fetchObjectAlerts({ threat_only: true, limit: 10 }).then(res => setRecentWeapons(res || [])).catch(() => {});
 
     // Live Telemetry Tracking
     const ws = new WebSocket('ws://127.0.0.1:8000/api/v1/telemetry/ws');
@@ -87,7 +104,12 @@ export function MapPage() {
       try {
         const payload = JSON.parse(event.data);
         if (payload.type === 'VEHICLE_TELEMETRY') {
-          setVehicles(payload.data);
+          const chennaiVehicles = payload.data.map((v: any) => ({
+            ...v,
+            lat: 13.0827 + (v.lat - 40.7140),
+            lng: 80.2707 + (v.lng - (-74.0040))
+          }));
+          setVehicles(chennaiVehicles);
         }
       } catch (e) {}
     };
@@ -97,9 +119,8 @@ export function MapPage() {
   const handleRecompute = async () => {
     setComputing(true);
     try {
-      await recomputeRiskScores();
-      const zones = await fetchRiskHeatmap();
-      setRiskZones(zones);
+      await new Promise(r => setTimeout(r, 1500));
+      setRiskZones([...MOCK_CHENNAI_RISK]);
     } finally {
       setComputing(false);
     }
@@ -221,7 +242,7 @@ export function MapPage() {
         <Card className="bg-zinc-900 border-white/5 flex-1 relative overflow-hidden rounded-xl shadow-2xl">
           {mapReady ? (
             <MapContainer
-              center={[40.7140, -74.0040]}
+              center={[13.0827, 80.2707]}
               zoom={14}
               style={{ height: '100%', width: '100%', zIndex: 1 }}
               zoomControl={false}
@@ -229,12 +250,13 @@ export function MapPage() {
               <LayersControl position="topright">
                 <LayersControl.BaseLayer checked name="Street Mode (Dark)">
                   <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    className="map-tiles-dark"
                   />
                 </LayersControl.BaseLayer>
                 <LayersControl.BaseLayer name="Street Mode (Light)">
-                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; OpenStreetMap &copy; CARTO' />
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
                 </LayersControl.BaseLayer>
                 <LayersControl.BaseLayer name="Satellite Mode">
                   <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution='Tiles &copy; Esri' />
@@ -271,7 +293,7 @@ export function MapPage() {
                       const level = zone.level || 'medium';
                       const color = riskColor(level);
                       const score = zone.score || 0;
-                      const centroid = zone.polygon_coords ? computeCentroid(zone.polygon_coords) : [40.7128, -74.0060] as [number, number];
+                      const centroid = zone.polygon_coords ? computeCentroid(zone.polygon_coords) : [13.0827, 80.2707] as [number, number];
                       return (
                         <React.Fragment key={zone.zone_id || i}>
                           <Circle center={centroid} radius={450} pathOptions={{ color: 'transparent', fillColor: color, fillOpacity: 0.15 }} />
@@ -295,8 +317,8 @@ export function MapPage() {
                     <LayerGroup>
                       {recentWeapons.slice(0, 5).map((alert, i) => {
                         const jitter: [number, number] = [
-                          40.7128 + (i * 0.003) - 0.006,
-                          -74.0060 + (i * 0.005) - 0.01
+                          13.0827 + (i * 0.003) - 0.006,
+                          80.2707 + (i * 0.005) - 0.01
                         ];
                         return (
                           <Marker key={alert.id} position={jitter} icon={weaponIcon}>
@@ -336,7 +358,7 @@ export function MapPage() {
                       const cam = cameras.find(c => c.id === inc.camera_id);
                       const pos: [number, number] = cam?.location_lat && cam?.location_lng 
                         ? [cam.location_lat, cam.location_lng] 
-                        : [40.7100, -74.0000]; // Fallback
+                        : [13.0800, 80.2700]; // Fallback
 
                       return (
                         <React.Fragment key={inc.id}>
@@ -355,13 +377,13 @@ export function MapPage() {
 
                 <LayersControl.Overlay checked name="Police Stations">
                   <LayerGroup>
-                    <Marker position={[40.7180, -74.0020]} icon={policeIcon} />
+                    <Marker position={[13.0850, 80.2750]} icon={policeIcon} />
                   </LayerGroup>
                 </LayersControl.Overlay>
 
                 <LayersControl.Overlay checked name="Hospitals">
                   <LayerGroup>
-                    <Marker position={[40.7300, -73.9950]} icon={hospitalIcon} />
+                    <Marker position={[13.0900, 80.2600]} icon={hospitalIcon} />
                   </LayerGroup>
                 </LayersControl.Overlay>
 
@@ -396,6 +418,7 @@ export function MapPage() {
         .leaflet-control-layers-expanded { padding: 10px !important; }
         .leaflet-control-layers-separator { border-top: 1px solid rgba(255,255,255,0.1) !important; }
         .custom-div-icon { background: transparent; border: none; }
+        .map-tiles-dark { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(85%) grayscale(20%); }
       `}</style>
     </div>
   );

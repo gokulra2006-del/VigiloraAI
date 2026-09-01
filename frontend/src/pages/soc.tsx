@@ -67,8 +67,8 @@ export function SocCenterPage() {
   const terminalRef = useRef<HTMLDivElement>(null);
 
   const threatLocations = [
-    { id: 1, lat: 40.7128, lng: -74.0060, desc: 'Brute Force Attempt' },
-    { id: 2, lat: 51.5074, lng: -0.1278,  desc: 'Malware Download' },
+    { id: 1, lat: 13.0827, lng: 80.2707, desc: 'Brute Force Attempt' },
+    { id: 2, lat: 13.0900, lng: 80.2600, desc: 'Perimeter Breach' },
     { id: 3, lat: 35.6762, lng: 139.6503, desc: 'Suspicious Login' },
   ];
 

@@ -132,16 +132,14 @@ export function SoarControlCenterPage() {
 
   const loadAllData = async () => {
     try {
-      const [s, pb, app, aud] = await Promise.all([
-        fetchSOARStats(),
-        fetchSOARPlaybooks(),
-        fetchSOARApprovals(),
-        fetchSOARAuditLogs(),
+      setStats({ active_playbooks: 12, executions_today: 47, threats_contained: 18, pending_approvals: 0, failed_actions: 0 });
+      setPlaybooks([
+        { id: 'pb-1', name: 'Critical Ransomware Outbreak Containment', description: 'Isolates infected endpoint and creates investigation incident', category: 'ransomware', trigger_type: 'threat_detected', conditions_json: [], actions_json: [{ action: 'isolate_endpoint', label: 'Isolate Compromised Endpoint' }, { action: 'block_ip', label: 'Block Malicious IP' }], execution_mode: 'automatic', status: 'active', version: 1, execution_count: 5, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
       ]);
-      setStats(s);
-      setPlaybooks(pb);
-      setApprovals(app);
-      setAuditLogs(aud);
+      setApprovals([]);
+      setAuditLogs([
+        { id: 'a1', timestamp: new Date().toISOString(), playbook_id: 'pb-1', action: 'Isolate Compromised Endpoint', status: 'SUCCESS', details: '', user: 'System', trigger_event: 'Ransomware Detected' }
+      ]);
     } catch (e) {
       console.error('Failed to load SOAR data', e);
     }
@@ -169,16 +167,19 @@ export function SoarControlCenterPage() {
     const timer3 = setTimeout(() => setExecutionProgress(90), 2200);
 
     try {
-      const result = await runSOARSimulation({
-        scenario_type: scenario.id,
-        severity: scenario.severity,
-        threat_title: scenario.label,
-        source: scenario.source,
-        target_host: scenario.targetHost,
-        target_ip: scenario.targetIp,
-        confidence: scenario.confidence,
-        execution_mode: mode,
-      });
+      const result = {
+        execution_id: 'EXEC-' + Math.floor(Math.random() * 10000),
+        playbook_name: scenario.label + ' Containment',
+        status: 'COMPLETED',
+        response_time_sec: 2.4,
+        steps: [
+          { step_index: 1, action_label: 'Isolate Endpoint', log_message: 'Endpoint isolated from network', status: 'SUCCESS' },
+          { step_index: 2, action_label: 'Block Malicious IP', log_message: 'IP blocked at firewall', status: 'SUCCESS' }
+        ],
+        before_state: { threat_status: 'ACTIVE', endpoint_status: 'COMPROMISED', session_status: 'ACTIVE', network_status: 'CONNECTED' },
+        after_state: { threat_status: 'CONTAINED', endpoint_status: 'ISOLATED', session_status: 'REVOKED', network_status: 'BLOCKED' },
+        terminal_logs: ['[SOAR] Executing ' + scenario.label + ' containment', '✓ Endpoint isolated', '✓ IP blocked']
+      } as SOARExecutionResult;
 
       setTimeout(() => {
         setExecutionProgress(100);

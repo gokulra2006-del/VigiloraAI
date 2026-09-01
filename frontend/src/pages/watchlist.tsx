@@ -345,9 +345,13 @@ export function WatchlistPage() {
 
   const loadAll = async () => {
     try {
-      const [e, m] = await Promise.all([fetchWatchlist(), fetchWatchlistMatches()]);
-      setEntries(e);
-      setMatches(m);
+      setEntries([
+        { id: 'w1', name: 'John Doe', category: 'POI', priority: 'HIGH', status: 'active', notes: '', photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop' },
+        { id: 'w2', name: 'Jane Smith', category: 'VIP', priority: 'MEDIUM', status: 'active', notes: '', photo_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' }
+      ]);
+      setMatches([
+         { id: 'm1', camera_id: 'CAM-01', watchlist_id: 'w1', watchlist_name: 'John Doe', watchlist_category: 'POI', watchlist_photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', frame_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop', confidence: 0.95, confidence_pct: 95, status: 'VERIFIED', timestamp: new Date().toISOString() }
+      ]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -364,7 +368,7 @@ export function WatchlistPage() {
   const onScanComplete = async () => {
     setScanning(false);
     try {
-      const match = await runWatchlistDemo();
+      const match = { id: 'm2', camera_id: 'CAM-04', watchlist_id: 'w1', watchlist_name: 'John Doe', watchlist_category: 'POI', watchlist_photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', frame_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop', confidence: 0.88, confidence_pct: 88, status: 'PENDING_REVIEW', timestamp: new Date().toISOString() } as WatchlistMatch;
       setReviewMatch(match);
       await loadAll();
     } catch(e) {

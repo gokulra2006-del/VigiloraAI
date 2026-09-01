@@ -94,21 +94,25 @@ export function CommandCenterPage() {
     if (!text.trim()) return;
     addTerminalLine(`> Transcript captured: "${text}"`);
     addTerminalLine("> Parsing intent via NLP engine...");
-    try {
-      const parsed = await parseVoiceCommand(text);
-      setParsedCommand(parsed);
-      addTerminalLine(`> Intent detected: ${parsed.intent}`);
-      addTerminalLine(`> Confidence: ${(parsed.confidence * 100).toFixed(0)}% | Risk Level: ${parsed.risk_level}`);
+    
+    // MOCK FOR PRESENTATION: Always succeed regardless of what is typed
+    setTimeout(() => {
+      const mockParsed: ParsedCommand = {
+        transcript: text,
+        intent: text.toLowerCase().includes('lockdown') ? 'RUN_LOCKDOWN' : 'CUSTOM_PROTOCOL',
+        confidence: 0.98,
+        risk_level: 'HIGH',
+        simulation: true,
+        confirmation_required: false
+      };
       
-      if (parsed.intent === 'UNKNOWN') {
-        setNovaResponse("I couldn't determine the requested security action. Please try again.");
-      } else if (!parsed.confirmation_required) {
-        // Auto execute safe commands
-        await execute(parsed);
-      }
-    } catch (e) {
-      addTerminalLine("> Error parsing command.");
-    }
+      setParsedCommand(mockParsed);
+      addTerminalLine(`> Intent detected: ${mockParsed.intent}`);
+      addTerminalLine(`> Confidence: 98% | Risk Level: HIGH`);
+      
+      // Auto execute for presentation smoothness
+      execute(mockParsed);
+    }, 800);
   };
 
   const handleTextSubmit = (e: React.FormEvent) => {
@@ -121,27 +125,23 @@ export function CommandCenterPage() {
     addTerminalLine("> Authorization verified.");
     if (cmd.confirmation_required) addTerminalLine("> Confirmation received.");
     
-    // Handle Navigation Commands directly
-    if (cmd.intent === "NAVIGATE" && cmd.target) {
-      addTerminalLine("> Executing navigation.");
-      setNovaResponse(`Opening ${cmd.target.replace('/', '')}...`);
-      setTimeout(() => navigate(cmd.target!), 1500);
-      return;
-    }
-    
     addTerminalLine("> Simulation started.");
     
-    try {
-      const result = await executeVoiceCommand(cmd);
-      result.action_log.forEach(l => addTerminalLine(`> ${l}`));
-      setNovaResponse(result.message);
-      addTerminalLine(`> Execution complete: ${result.status}`);
-      // Refresh history
-      fetchCommandHistory().then(setHistory).catch(console.error);
-    } catch (e) {
-      addTerminalLine("> Execution failed.");
-      setNovaResponse("Failed to execute the command due to a system error.");
-    }
+    // MOCK FOR PRESENTATION
+    setTimeout(() => {
+      const actionLogs = [
+        "Initiating facility-wide broadcast...",
+        "Locking access control points in designated sector...",
+        "Dispatching nearest patrol unit to location...",
+        "Protocol successfully executed."
+      ];
+      actionLogs.forEach((l, i) => setTimeout(() => addTerminalLine(`> ${l}`), i * 300));
+      
+      setTimeout(() => {
+        setNovaResponse(`Successfully executed the requested security protocol. All designated sectors have been secured.`);
+        addTerminalLine(`> Execution complete: SUCCESS`);
+      }, 1500);
+    }, 500);
   };
 
   const runDemoSequence = async () => {
