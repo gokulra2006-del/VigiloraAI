@@ -55,6 +55,9 @@ export const fetchIncidents = async (): Promise<Incident[]> => {
 };
 
 export const transitionIncident = async (id: string, status: string): Promise<Incident> => {
+  const response = await fetch(`${API_BASE_URL}/incidents/${id}/transition`, {
+    method: 'PATCH',
+    headers: {
       'Content-Type': 'application/json',
       ...getAuthHeaders()
     },
