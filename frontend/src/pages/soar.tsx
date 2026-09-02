@@ -132,7 +132,7 @@ export function SoarControlCenterPage() {
 
   const loadAllData = async () => {
     try {
-      setStats({ active_playbooks: 12, executions_today: 47, threats_contained: 18, pending_approvals: 0, failed_actions: 0 });
+      setStats({ active_playbooks: 24, executions_today: 142, threats_contained: 8, pending_approvals: 3, failed_actions: 0 } as any);
       setPlaybooks([
         { id: 'pb-1', name: 'Critical Ransomware Outbreak Containment', description: 'Isolates infected endpoint and creates investigation incident', category: 'ransomware', trigger_type: 'threat_detected', conditions_json: [], actions_json: [{ action: 'isolate_endpoint', label: 'Isolate Compromised Endpoint' }, { action: 'block_ip', label: 'Block Malicious IP' }], execution_mode: 'automatic', status: 'active', version: 1, execution_count: 5, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
       ]);
@@ -179,7 +179,7 @@ export function SoarControlCenterPage() {
         before_state: { threat_status: 'ACTIVE', endpoint_status: 'COMPROMISED', session_status: 'ACTIVE', network_status: 'CONNECTED' },
         after_state: { threat_status: 'CONTAINED', endpoint_status: 'ISOLATED', session_status: 'REVOKED', network_status: 'BLOCKED' },
         terminal_logs: ['[SOAR] Executing ' + scenario.label + ' containment', '✓ Endpoint isolated', '✓ IP blocked']
-      } as SOARExecutionResult;
+      } as any;
 
       setTimeout(() => {
         setExecutionProgress(100);

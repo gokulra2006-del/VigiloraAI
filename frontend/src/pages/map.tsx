@@ -77,7 +77,7 @@ export function MapPage() {
   const MOCK_CHENNAI_RISK = [
     { zone_id: 'z-alpha', zone_name: 'Sector Alpha', score: 85, level: 'critical', polygon_coords: [[13.0850, 80.2700], [13.0850, 80.2780], [13.0800, 80.2750], [13.0800, 80.2700]] as [number, number][] },
     { zone_id: 'z-beta', zone_name: 'Sector Beta', score: 45, level: 'medium', polygon_coords: [[13.0900, 80.2600], [13.0900, 80.2650], [13.0850, 80.2650], [13.0850, 80.2600]] as [number, number][] }
-  ];
+  ] as any;
 
   useEffect(() => {
     setRiskZones(MOCK_CHENNAI_RISK);

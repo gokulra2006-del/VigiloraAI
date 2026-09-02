@@ -346,11 +346,11 @@ export function WatchlistPage() {
   const loadAll = async () => {
     try {
       setEntries([
-        { id: 'w1', name: 'John Doe', category: 'POI', priority: 'HIGH', status: 'active', notes: '', photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop' },
-        { id: 'w2', name: 'Jane Smith', category: 'VIP', priority: 'MEDIUM', status: 'active', notes: '', photo_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' }
+        { id: 'wl-1', name: 'John Doe', category: 'known_offender', priority: 'high', status: 'active', notes: 'Banned from premises.', photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' } as any,
+        { id: 'wl-2', name: 'Jane Smith', category: 'vip', priority: 'medium', status: 'active', notes: 'Executive board member.', photo_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' } as any
       ]);
       setMatches([
-         { id: 'm1', camera_id: 'CAM-01', watchlist_id: 'w1', watchlist_name: 'John Doe', watchlist_category: 'POI', watchlist_photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', frame_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop', confidence: 0.95, confidence_pct: 95, status: 'VERIFIED', timestamp: new Date().toISOString() }
+         { id: 'm1', camera_id: 'CAM-01', watchlist_id: 'w1', watchlist_name: 'John Doe', watchlist_category: 'POI', watchlist_photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', frame_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop', confidence: 0.95, confidence_pct: 95, status: 'VERIFIED', timestamp: new Date().toISOString() } as any
       ]);
     } catch (err) {
       console.error(err);
@@ -368,7 +368,7 @@ export function WatchlistPage() {
   const onScanComplete = async () => {
     setScanning(false);
     try {
-      const match = { id: 'm2', camera_id: 'CAM-04', watchlist_id: 'w1', watchlist_name: 'John Doe', watchlist_category: 'POI', watchlist_photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', frame_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop', confidence: 0.88, confidence_pct: 88, status: 'PENDING_REVIEW', timestamp: new Date().toISOString() } as WatchlistMatch;
+      const match = { id: 'm2', camera_id: 'CAM-04', watchlist_id: 'w1', watchlist_name: 'John Doe', watchlist_category: 'POI', watchlist_photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', frame_path: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop', confidence: 0.88, confidence_pct: 88, status: 'PENDING_REVIEW', timestamp: new Date().toISOString() } as any;
       setReviewMatch(match);
       await loadAll();
     } catch(e) {
