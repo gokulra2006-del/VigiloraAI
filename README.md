@@ -1,36 +1,36 @@
-# 🛡️ VIGILORA AI (Sentinel-ai)
+# VIGILORA AI (Sentinel-ai)
 
-**VIGILORA AI** is an enterprise-grade, intelligent visual monitoring & detection platform. Built for modern security operations, it combines state-of-the-art computer vision models with real-time alerting, automated playbooks, and a conversational AI assistant to proactively secure physical environments.
+**VIGILORA AI** is an enterprise-grade, autonomous visual monitoring and detection platform. Built for modern security operations, it combines state-of-the-art computer vision models with real-time alerting, automated playbooks, and a conversational AI assistant to proactively secure physical environments.
 
 ---
 
-## ✨ Key Features & Modules
+## Key Features & Modules
 
-### 📡 Core Monitoring & Operations
+### Core Monitoring & Operations
 *   **Dashboard:** Central command overview with high-level metrics, system health, and recent critical alerts.
 *   **Live Feed:** Real-time, ultra-low latency video streaming with live AI bounding box overlays.
 *   **GIS Map:** Spatial interface plotting camera placements and live incident markers.
 *   **SOC Center:** A high-density view designed specifically for control room operators for rapid response.
 
-### 🧠 Artificial Intelligence & Detection
+### Artificial Intelligence & Detection
 *   **OG AI (Nova):** A conversational AI assistant that queries system logs and analyzes incidents using natural language.
 *   **Object Alerts (LIVE):** Continuous real-time feed tracking recognized objects (e.g., weapons, unauthorized vehicles) with confidence scores.
 *   **AI Models:** Configuration center for computer vision engines (YOLOv8), sensitivity thresholds, and processing resources.
 *   **Threat Intel:** Integrates external threat intelligence feeds to correlate internal physical security events.
 
-### 🕵️ Investigation & Incident Management
-*   **Case Board:** Kanban-style board for bundling related alerts into a single "Case" and tracking investigation progress.
+### Investigation & Incident Management
+*   **Case Board:** Kanban-style board for bundling related alerts into a single Case and tracking investigation progress.
 *   **Incidents & Timeline:** Triage interface for managing escalated events and a chronological audit trail for forensic analysis.
 *   **Watchlist:** Secure database for tracking license plates of unauthorized vehicles or facial recognition profiles.
 
-### ⚙️ Automation & Administration
-*   **Playbooks:** Automated response engine ("If-This-Then-That" workflows) for autonomous security actions.
+### Automation & Administration
+*   **Playbooks:** Automated response engine (SOAR workflows) for autonomous security actions without human intervention.
 *   **Reports:** Intelligence hub for compiling and exporting official PDF dossiers and compliance logs.
 *   **Cameras & Users:** Device registry for RTSP/webcam streams and Role-Based Access Control (RBAC) management.
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 
 ### Frontend (Client & UI Architecture)
 *   **React 19 & Vite 8:** Ultra-fast core UI library and build tool.
@@ -52,7 +52,7 @@
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### Prerequisites
 - Node.js (for frontend)
@@ -100,7 +100,7 @@ If the database was initialized cleanly, you can create a test user by running t
 
 ---
 
-## 🎥 Camera Simulation & RTSP Support
+## Camera Simulation & RTSP Support
 
 VIGILORA AI's detection engine supports multiple camera source types for simulation and testing.
 
