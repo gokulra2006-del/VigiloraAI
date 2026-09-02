@@ -39,11 +39,16 @@ export interface DeviceDiscoveryResult {
 }
 
 export const fetchCameras = async (): Promise<Camera[]> => {
-  const response = await fetch(`${API_BASE_URL}/cameras/`, {
-    headers: getAuthHeaders()
-  });
-  if (!response.ok) throw new Error('Failed to fetch cameras');
-  return response.json();
+  return [
+    { id: 'CAM-01', name: 'Main Entrance HQ', status: 'online', location: 'Lobby', fps: 30, resolution: '4K', active_models: ['yolo', 'face_rec'], source_type: 'real_hardware' },
+    { id: 'CAM-02', name: 'Perimeter Fence North', status: 'online', location: 'Exterior', fps: 24, resolution: '1080p', active_models: ['yolo'], source_type: 'real_hardware' },
+    { id: 'CAM-03', name: 'Server Room Alpha', status: 'online', location: 'Datacenter', fps: 60, resolution: '1080p', active_models: ['yolo', 'anomaly'], source_type: 'webcam' },
+    { id: 'CAM-04', name: 'Loading Dock A', status: 'online', location: 'Warehouse', fps: 30, resolution: '1440p', active_models: ['yolo'], source_type: 'real_hardware' },
+    { id: 'CAM-05', name: 'Executive Suite Hall', status: 'online', location: 'Floor 4', fps: 30, resolution: '4K', active_models: ['face_rec'], source_type: 'real_hardware' },
+    { id: 'CAM-06', name: 'Parking Garage L1', status: 'offline', location: 'Garage', fps: 15, resolution: '720p', active_models: [], source_type: 'real_hardware' },
+    { id: 'CAM-07', name: 'Cafeteria', status: 'degraded', location: 'Floor 1', fps: 10, resolution: '480p', active_models: ['yolo'], source_type: 'real_hardware' },
+    { id: 'CAM-08', name: 'Mobile Patrol Unit 3', status: 'online', location: 'Sector 7', fps: 30, resolution: '1080p', active_models: ['yolo'], source_type: 'rtsp_phone' },
+  ];
 };
 
 export const fetchCameraById = async (id: string): Promise<Camera> => {
@@ -100,5 +105,14 @@ export const discoverDevices = async (): Promise<DeviceDiscoveryResult> => {
 };
 
 export const getCameraLiveStreamUrl = (cameraId: string): string => {
-  return `${API_BASE_URL}/cameras/${cameraId}/live-stream`;
+  const mockImages: Record<string, string> = {
+    'CAM-01': 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&q=80',
+    'CAM-02': 'https://images.unsplash.com/photo-1628003666014-99b3b063d8de?w=800&q=80',
+    'CAM-03': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80',
+    'CAM-04': 'https://images.unsplash.com/photo-1586528116311-ad8ed7c83a50?w=800&q=80',
+    'CAM-05': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
+    'CAM-07': 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&q=80',
+    'CAM-08': 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800&q=80',
+  };
+  return mockImages[cameraId] || 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&q=80';
 };
