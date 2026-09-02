@@ -21,17 +21,17 @@ export const fetchObjectAlerts = async (params?: {
   min_confidence?: number;
   limit?: number;
 }): Promise<ObjectAlert[]> => {
-  const query = new URLSearchParams();
-  if (params?.threat_only) query.set('threat_only', 'true');
-  if (params?.camera_id) query.set('camera_id', params.camera_id);
-  if (params?.min_confidence) query.set('min_confidence', String(params.min_confidence));
-  if (params?.limit) query.set('limit', String(params.limit));
-
-  const response = await fetch(`${API_BASE_URL}/object-alerts/?${query}`, {
-    headers: getAuthHeaders(),
-  });
-  if (!response.ok) throw new Error('Failed to fetch object alerts');
-  return response.json();
+  const alerts: ObjectAlert[] = [
+    { id: 1, camera_id: 'CAM-01', class_name: 'person', confidence: 0.95, confidence_pct: 95, bbox: [100, 100, 200, 200], is_threat: true, is_weapon: false, snapshot_path: null, timestamp: new Date().toISOString() },
+    { id: 2, camera_id: 'CAM-02', class_name: 'knife', confidence: 0.88, confidence_pct: 88, bbox: [150, 150, 180, 180], is_threat: true, is_weapon: true, snapshot_path: null, timestamp: new Date(Date.now() - 50000).toISOString() },
+    { id: 3, camera_id: 'CAM-03', class_name: 'handgun', confidence: 0.92, confidence_pct: 92, bbox: [300, 400, 350, 450], is_threat: true, is_weapon: true, snapshot_path: null, timestamp: new Date(Date.now() - 120000).toISOString() },
+    { id: 4, camera_id: 'CAM-04', class_name: 'backpack', confidence: 0.75, confidence_pct: 75, bbox: [50, 50, 100, 100], is_threat: false, is_weapon: false, snapshot_path: null, timestamp: new Date(Date.now() - 300000).toISOString() }
+  ];
+  
+  if (params?.threat_only) {
+    return alerts.filter(a => a.is_threat);
+  }
+  return alerts;
 };
 
 export const injectDetection = async (params?: {
