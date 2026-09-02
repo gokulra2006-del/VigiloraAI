@@ -305,7 +305,7 @@ export function ChatAssistant() {
       const lower = trimmed.toLowerCase();
       
       if (lower.includes('incident')) {
-        data = { reply: "There are currently 2 open incidents. A critical unauthorized access was detected at Sector Alpha 4 minutes ago, and a medium severity tailgating event at Sector Beta.", data: { type: 'incident_summary', count: 2 } };
+        data = { reply: "There are currently 3 active incidents on the dashboard. A critical ransomware lateral movement was detected in Server Room Alpha, a high severity perimeter breach at North Fence, and a medium severity tailgating event in the Lobby HQ.", data: { type: 'incident_summary', count: 3 } };
       } else if (lower.includes('threat')) {
         data = { reply: "I have identified 3 potential threats in the last hour. The highest confidence threat is a recognized individual on the watchlist in the Main Lobby.", data: { type: 'threat_summary' } };
       } else if (lower.includes('status')) {
