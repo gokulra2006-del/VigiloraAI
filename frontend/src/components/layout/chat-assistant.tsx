@@ -298,17 +298,23 @@ export function ChatAssistant() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/chat/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({
-          message: trimmed,
-          history: history.slice(-10),
-        }),
-      });
-
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
-      const data = await res.json();
+      // Mock AI responses for Vercel presentation
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      let data: any = { reply: "I'm monitoring the active environment. All systems are operational.", data: null };
+      const lower = trimmed.toLowerCase();
+      
+      if (lower.includes('incident')) {
+        data = { reply: "There are currently 2 open incidents. A critical unauthorized access was detected at Sector Alpha 4 minutes ago, and a medium severity tailgating event at Sector Beta.", data: { type: 'incident_summary', count: 2 } };
+      } else if (lower.includes('threat')) {
+        data = { reply: "I have identified 3 potential threats in the last hour. The highest confidence threat is a recognized individual on the watchlist in the Main Lobby.", data: { type: 'threat_summary' } };
+      } else if (lower.includes('status')) {
+        data = { reply: "All security grids are active. 24 playbooks are currently loaded and ready for autonomous execution.", data: null };
+      } else if (lower.includes('soar') || lower.includes('contain')) {
+        data = { reply: "SOAR is fully active. The ransomware containment pipeline is ready to execute. Just click 'Run Live SOAR Demo' on the Command Center to initiate.", data: null };
+      } else {
+        data = { reply: "I've analyzed the current telemetry. Everything appears secure, but I'll continue monitoring.", data: null };
+      }
 
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
