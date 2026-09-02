@@ -135,11 +135,11 @@ export function SoarControlCenterPage() {
       setStats({ active_playbooks: 24, executions_today: 142, threats_contained: 8, pending_approvals: 3, failed_actions: 0 } as any);
       setPlaybooks([
         { id: 'pb-1', name: 'Critical Ransomware Outbreak Containment', description: 'Isolates infected endpoint and creates investigation incident', category: 'ransomware', trigger_type: 'threat_detected', conditions_json: [], actions_json: [{ action: 'isolate_endpoint', label: 'Isolate Compromised Endpoint' }, { action: 'block_ip', label: 'Block Malicious IP' }], execution_mode: 'automatic', status: 'active', version: 1, execution_count: 5, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
-      ]);
+      ] as any);
       setApprovals([]);
       setAuditLogs([
         { id: 'a1', timestamp: new Date().toISOString(), playbook_id: 'pb-1', action: 'Isolate Compromised Endpoint', status: 'SUCCESS', details: '', user: 'System', trigger_event: 'Ransomware Detected' }
-      ]);
+      ] as any);
     } catch (e) {
       console.error('Failed to load SOAR data', e);
     }
