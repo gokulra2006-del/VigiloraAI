@@ -13,9 +13,9 @@ pytest==8.2.2
 httpx==0.27.0
 bcrypt==4.0.1
 aiohttp==3.9.5
-anthropic
-chromadb
+# anthropic
+# chromadb
 apscheduler
 
-opencv-python-headless
-ultralytics
+# opencv-python-headless
+# ultralytics
